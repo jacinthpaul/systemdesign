@@ -276,8 +276,45 @@ async function section(name, fn) { cur = name; try { await fn(); } catch (e) { r
     await p.click('#trafficBtn'); ok((await p.textContent('#toast')).includes('reached all 2'), 'traffic works without a rubric');
   });
 
+  await section('Advanced notes', async () => {
+    await p.evaluate(() => { loadChallenge('chat'); S.result = null; S.adv = false; persist(); renderScore(); });
+    await p.click('#tabAdv');
+    ok(await p.locator('#advOpen').isVisible(), 'spoiler gate shown before submitting');
+    await p.click('#advOpen');
+    for (const id of ['api', 'data', 'trade', 'fail', 'scale', 'metrics']) ok(await p.locator('#paneAdv #adv-' + id).isVisible(), 'section ' + id + ' rendered');
+    ok(await p.evaluate(() => S.score === undefined && S.result == null), 'opening notes does not submit or score');
+    await p.reload(); await p.waitForTimeout(300); await p.click('#tabAdv');
+    ok(await p.locator('#advOpen').count() === 0 && await p.locator('#paneAdv .ep').count() > 0, 'opened state persists after reload');
+    await p.click('[data-jump="metrics"]'); await p.waitForTimeout(700);
+    const top = await p.locator('#paneAdv #adv-metrics').boundingBox(); const pane = await p.locator('#paneAdv').boundingBox();
+    ok(top.y < pane.y + pane.height && top.y >= pane.y - 5, 'section links scroll to the section');
+    await p.click('#advExpand');
+    ok(await p.locator('#advWide').isVisible() && (await p.textContent('#advWideTitle')).includes('Chat Messenger'), 'wide view opens');
+    ok(await p.locator('#advWideBody .ent').count() === 3, 'wide view shows data model');
+    ok(await p.evaluate(() => getComputedStyle(document.querySelector('#advWideBody .adv-grid')).gridTemplateColumns.split(' ').length) === 2, 'wide view uses two columns');
+    await p.keyboard.press('Escape'); ok(await p.locator('#advWide').isHidden(), 'Escape closes wide view');
+    await p.click('#advExpand'); await p.click('#advWideClose'); ok(await p.locator('#advWide').isHidden(), 'Close button closes');
+    await p.click('#advExpand'); await p.mouse.click(5, 450); ok(await p.locator('#advWide').isHidden(), 'backdrop closes');
+    await p.click('#tabBrief'); await p.click('#advLink'); ok(await p.locator('#paneAdv').isVisible(), 'Brief link opens Advanced');
+    await p.click('#submitBtn'); await p.click('#advLink2'); ok(await p.locator('#paneAdv').isVisible(), 'Scorecard "Go deeper" opens Advanced');
+    const ids = await p.evaluate(() => Object.keys(ADV));
+    ok(ids.length === 10, 'notes exist for all 10 prompts');
+    for (const id of ids) {
+      await p.evaluate(i => { loadChallenge(i); S.adv = true; }, id); await p.click('#tabAdv');
+      const c = await p.evaluate(() => ({ ep: document.querySelectorAll('#paneAdv .ep').length, ent: document.querySelectorAll('#paneAdv .ent').length, tr: document.querySelectorAll('#paneAdv .tr').length, chosen: [...document.querySelectorAll('#paneAdv .tr')].every(t => t.querySelector('.chosen')), fl: document.querySelectorAll('#paneAdv .fl').length, st: document.querySelectorAll('#paneAdv .steps li').length, mt: document.querySelectorAll('#paneAdv .chips span').length, wide: document.getElementById('paneAdv').scrollWidth <= document.getElementById('paneAdv').clientWidth + 1 }));
+      ok(c.ep >= 3 && c.ent >= 2 && c.tr >= 4 && c.fl >= 4 && c.st >= 4 && c.mt >= 4, `${id}: ${c.ep} APIs, ${c.ent} entities, ${c.tr} trade-offs, ${c.fl} failures, ${c.st} steps, ${c.mt} metrics`);
+      ok(c.chosen, `${id}: every trade-off highlights its pick`);
+      ok(c.wide, `${id}: no sideways overflow in panel`);
+    }
+    await p.evaluate(() => loadChallenge('sandbox')); await p.click('#tabAdv');
+    ok(await p.locator('#advOpen').count() === 0 && (await p.textContent('#paneAdv')).includes('Interview framework'), 'Sandbox shows the interview framework, no gate');
+    await p.evaluate(() => loadChallenge('url')); await p.click('#clearBtn'); await p.click('#clearBtn');
+    await p.click('#tabAdv'); ok(await p.locator('#advOpen').isVisible(), 'Clear re-arms the spoiler gate');
+    await p.click('#undoBtn');
+  });
+
   await section('Tabs', async () => {
-    for (const t of ['Brief', 'Inspect', 'Score']) { await p.click('#tab' + t); ok(await p.locator('#pane' + t).isVisible(), t + ' tab'); }
+    for (const t of ['Brief', 'Inspect', 'Score', 'Adv']) { await p.click('#tab' + t); ok(await p.locator('#pane' + t).isVisible(), t + ' tab'); }
   });
 
   await section('Dark mode', async () => {
@@ -316,6 +353,10 @@ async function section(name, fn) { cur = name; try { await fn(); } catch (e) { r
     ok(await mp.evaluate(i => S.nodes.find(n => n.id === i).y, ids[2]) > y0 + 50, 'touch drag moves node');
     await mp.locator(`.node[data-id="${ids[2]}"]`).tap(); ok(await mp.evaluate(() => sel && sel.t === 'node'), 'tap selects node');
     await mp.click('#submitBtn'); ok(await mp.evaluate(() => S.result && S.result.score != null), 'submit works on phone');
+    await mp.click('#tabAdv'); ok(await mp.locator('#paneAdv .ep').count() > 0, 'Advanced notes readable on phone');
+    ok(await mp.evaluate(() => document.documentElement.scrollWidth) <= 390, 'still no horizontal scroll with notes open');
+    await mp.click('#advExpand'); ok(await mp.evaluate(() => getComputedStyle(document.querySelector('#advWideBody .adv-grid')).gridTemplateColumns.split(' ').length) === 1, 'wide view stacks to one column on phone');
+    await mp.screenshot({ path: shot('design-round-phone-adv.png') }); await mp.click('#advWideClose');
     await mp.screenshot({ path: shot('design-round-phone.png') });
   });
 

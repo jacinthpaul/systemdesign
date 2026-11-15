@@ -16,6 +16,19 @@ Open `index.html` in any modern browser. There's nothing to install or build, an
 
 Hints are available but cost 5 points each. After submitting you can load the reference design (that attempt then no longer counts toward your best score). Progress and boards are saved in your browser's local storage.
 
+## Advanced notes
+
+Every prompt has an **Advanced** tab (also linked from the Brief and the Scorecard) with:
+
+- **API design:** the core endpoints, WebSocket frames or internal RPCs with request and response shapes
+- **Data model:** entities, which store holds them, partition and sort keys, and field types
+- **Trade-offs:** the key decisions, the options, which one to pick and why
+- **Failure modes and fixes:** what breaks, the impact, and how to recover
+- **Scaling path:** how the design evolves from an MVP to global scale
+- **Metrics to watch:** what you'd put on the dashboard
+
+The notes describe a strong answer, so they're hidden behind a "Show advanced notes" button until you submit (opening them doesn't affect your score). "Open wide view" shows them in a two-column reader. The Sandbox shows a 45-minute interview framework instead.
+
 ## Components
 
 29 building blocks in six groups: clients, edge and networking (DNS, CDN, load balancer, API gateway, rate limiter), compute (app servers, microservices, WebSocket servers, workers, serverless, schedulers), storage (SQL, read replicas, NoSQL, key-value, cache, object storage, search, geospatial index, warehouse), messaging (queues, event streams) and supporting services (auth, notifications, ID generator, ZooKeeper, monitoring).

@@ -208,9 +208,9 @@ h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
 
 /* ---------- right panel ---------- */
 .panel { border-left: 1px solid var(--line); background: var(--panel); display: flex; flex-direction: column; min-height: 0; min-width: 0; }
-.tabs { display: flex; border-bottom: 1px solid var(--line); padding: 0 8px; gap: 2px; }
+.tabs { display: flex; border-bottom: 1px solid var(--line); padding: 0 6px; gap: 0; overflow-x: auto; }
 .tab {
-  border: 0; background: none; padding: 11px 12px 9px; font-weight: 500; color: var(--ink-3); border-bottom: 2px solid transparent;
+  border: 0; background: none; padding: 11px 10px 9px; white-space: nowrap; font-weight: 500; color: var(--ink-3); border-bottom: 2px solid transparent;
 }
 .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
 .tab .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-left: 5px; vertical-align: middle; }
@@ -270,6 +270,69 @@ details ul { margin-top: 6px; }
 .checks .pen .pts { color: var(--bad); }
 .note { background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; font-size: 13px; }
 
+/* ---------- advanced notes ---------- */
+.adv-gate { display: flex; flex-direction: column; gap: 10px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+.adv-gate p { margin: 0; color: var(--ink-2); }
+.adv-toc { display: flex; flex-wrap: wrap; gap: 6px; }
+.adv-toc a { font-size: 12px; color: var(--ink-2); text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px; background: var(--paper); }
+.adv-toc a:hover { border-color: var(--ink-3); color: var(--ink); }
+.adv-grid { display: flex; flex-direction: column; gap: 22px; }
+.adv-sec { display: flex; flex-direction: column; gap: 8px; min-width: 0; scroll-margin-top: 12px; }
+.adv-sec > h4 { margin: 0; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); }
+.adv-sec code, .adv code { font-family: var(--f-mono); font-size: 12px; }
+.ep { display: flex; flex-direction: column; gap: 3px; padding: 8px 0; border-top: 1px solid var(--line); }
+.ep:first-of-type { border-top: 0; padding-top: 0; }
+.ep-line { display: flex; gap: 8px; align-items: baseline; min-width: 0; }
+.ep-line code { font-weight: 600; overflow-wrap: anywhere; color: var(--ink); }
+.ep p { margin: 0; font-size: 13px; color: var(--ink-2); }
+.m { flex: none; font: 600 10px/1 var(--f-mono); padding: 4px 5px; border-radius: 4px; min-width: 40px; text-align: center; color: var(--c-client); background: color-mix(in srgb, var(--c-client) 14%, transparent); }
+.m-GET { color: var(--c-edge); background: color-mix(in srgb, var(--c-edge) 14%, transparent); }
+.m-POST { color: var(--c-compute); background: color-mix(in srgb, var(--c-compute) 14%, transparent); }
+.m-PUT { color: var(--c-data); background: color-mix(in srgb, var(--c-data) 14%, transparent); }
+.m-DELETE, .m-429 { color: var(--bad); background: color-mix(in srgb, var(--bad) 13%, transparent); }
+.m-WS, .m-EVT { color: var(--c-msg); background: color-mix(in srgb, var(--c-msg) 14%, transparent); }
+.ent { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.ent-h { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; padding: 7px 10px; background: var(--paper); border-bottom: 1px solid var(--line); }
+.ent-h b { font-family: var(--f-mono); font-size: 13px; }
+.ent-h span { font-size: 12px; color: var(--ink-3); }
+.tbl { overflow-x: auto; }
+.fields { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+.fields td { padding: 5px 10px; border-top: 1px solid var(--line); vertical-align: top; }
+.fields tr:first-child td { border-top: 0; }
+.fields td:nth-child(1) { font-family: var(--f-mono); font-size: 12px; white-space: nowrap; }
+.fields td:nth-child(2) { font-family: var(--f-mono); font-size: 11.5px; color: var(--c-data); white-space: nowrap; }
+.fields td:nth-child(3) { color: var(--ink-2); }
+.tr { display: flex; flex-direction: column; gap: 6px; padding: 10px 0; border-top: 1px solid var(--line); }
+.tr:first-of-type { border-top: 0; padding-top: 0; }
+.tr > b { font-family: var(--f-display); font-size: 15px; }
+.opts { display: flex; flex-wrap: wrap; gap: 5px; }
+.opts span { font-size: 12px; border: 1px dashed var(--line); border-radius: 6px; padding: 2px 7px; color: var(--ink-2); }
+.opts span.chosen { border-style: solid; border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.choice { font-size: 13.5px; }
+.choice span, .fix span { font: 600 10px/1 var(--f-mono); text-transform: uppercase; letter-spacing: .06em; padding: 3px 5px; border-radius: 4px; margin-right: 6px; vertical-align: 1px; }
+.choice span { color: var(--accent); background: var(--accent-soft); }
+.tr p { margin: 0; font-size: 13px; color: var(--ink-2); }
+.fl { display: grid; grid-template-columns: 10px 1fr; gap: 3px 10px; padding: 9px 0; border-top: 1px solid var(--line); }
+.fl:first-of-type { border-top: 0; padding-top: 0; }
+.fl::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--bad); margin-top: 6px; grid-row: span 3; }
+.fl b { font-size: 13.5px; }
+.fl .impact { font-size: 13px; color: var(--ink-2); }
+.fix { font-size: 13px; }
+.fix span { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
+.steps { margin: 0; padding-left: 0 !important; list-style: none; counter-reset: st; display: flex; flex-direction: column; gap: 6px; }
+.steps li { counter-increment: st; display: grid; grid-template-columns: 22px 1fr; gap: 8px; font-size: 13.5px; }
+.steps li::before { content: counter(st); width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font: 600 11px/1 var(--f-mono); background: var(--paper); border: 1px solid var(--line); color: var(--ink-2); }
+.steps li small { display: block; color: var(--ink-3); font-size: 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips span { font-size: 12.5px; background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; }
+.adv-link { text-align: left; border: 1px solid var(--line); background: var(--paper); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+.adv-link:hover { border-color: var(--accent); }
+.adv-link b { font-family: var(--f-display); font-size: 15px; }
+.adv-link span { font-size: 12.5px; color: var(--ink-3); }
+.sheet.wide { width: min(1180px, 100%); }
+.sheet.wide .adv-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 32px; align-items: start; }
+@media (max-width: 760px) { .sheet.wide .adv-grid { grid-template-columns: minmax(0, 1fr); } }
+
 /* ---------- level select ---------- */
 .overlay {
   position: fixed; inset: 0; z-index: 50; background: rgb(10 14 12 / .45);
@@ -328,7 +391,7 @@ details ul { margin-top: 6px; }
   .bar { gap: 8px; }
   .tools { gap: 6px; width: 100%; }
   .tools .btn { padding: 6px 9px; font-size: 13px; }
-  .wide { display: none; }
+  .lg-only { display: none; }
   .timer { margin-right: auto; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -359,7 +422,7 @@ details ul { margin-top: 6px; }
       <button class="btn" id="undoBtn" title="Undo (Ctrl+Z)">Undo</button>
       <button class="btn" id="clearBtn">Clear</button>
       <button class="btn" id="trafficBtn" title="Animate requests flowing from the clients">Run traffic</button>
-      <button class="btn primary" id="submitBtn">Submit<span class="wide"> design</span></button>
+      <button class="btn primary" id="submitBtn">Submit<span class="lg-only"> design</span></button>
     </div>
   </header>
 
@@ -393,10 +456,12 @@ details ul { margin-top: 6px; }
         <button class="tab" role="tab" id="tabBrief" aria-selected="true" data-tab="brief">Brief</button>
         <button class="tab" role="tab" id="tabInspect" aria-selected="false" data-tab="inspect">Inspect</button>
         <button class="tab" role="tab" id="tabScore" aria-selected="false" data-tab="score">Scorecard</button>
+        <button class="tab" role="tab" id="tabAdv" aria-selected="false" data-tab="adv">Advanced</button>
       </nav>
       <div class="tabbody" id="paneBrief"></div>
       <div class="tabbody" id="paneInspect" hidden></div>
       <div class="tabbody" id="paneScore" hidden></div>
+      <div class="tabbody" id="paneAdv" hidden></div>
     </aside>
   </main>
 </div>
@@ -411,6 +476,15 @@ details ul { margin-top: 6px; }
       <button class="btn" id="levelsClose">Close</button>
     </div>
     <div class="levels" id="levelGrid"></div>
+  </div>
+</div>
+<div class="overlay" id="advWide" hidden role="dialog" aria-modal="true" aria-labelledby="advWideTitle">
+  <div class="sheet wide">
+    <div class="sheet-head">
+      <div style="flex:1"><h2 id="advWideTitle">Advanced notes</h2><p id="advWideSub"></p></div>
+      <button class="btn" id="advWideClose">Close</button>
+    </div>
+    <div id="advWideBody"></div>
   </div>
 </div>
 <div class="toast" id="toast" hidden></div>
@@ -795,6 +869,311 @@ const CHALLENGES = [
 ];
 
 /* =========================================================
+   Advanced deep dives
+   api:     [method, path, what it does]
+   data:    {n: entity, s: store and key, f: [[field, type, note]]}
+   trade:   {t: decision, o: options, c: indexes of chosen options, pick: choice, why}
+   fail:    [failure, impact, fix]
+   scale:   ordered steps from MVP to global
+   metrics: what to put on the dashboard
+   ========================================================= */
+const ADV = {
+  url: {
+    api: [
+      ["POST", "/api/v1/urls", "Body {long_url, custom_alias?, expires_at?}. Returns 201 {code, short_url}. Requires an API key; rate limited per key."],
+      ["GET", "/{code}", "302 with Location: long_url. 404 if unknown, 410 if expired."],
+      ["GET", "/api/v1/urls/{code}/stats", "Click totals and a per-day breakdown, read from the analytics store."],
+      ["DELETE", "/api/v1/urls/{code}", "204. Owner only. Writes a tombstone and evicts the cache entry."],
+    ],
+    data: [
+      { n: "links", s: "NoSQL · partition key: code", f: [["code", "string(7)", "base62, primary key"], ["long_url", "string(2048)", ""], ["owner_id", "uuid", "nullable for anonymous links"], ["created_at", "timestamp", ""], ["expires_at", "timestamp", "native TTL deletes the row"]] },
+      { n: "id_ranges", s: "ID generator · ZooKeeper / ticket DB", f: [["server_id", "string", ""], ["range_start", "int64", "e.g. leases 1M IDs at a time"], ["range_end", "int64", ""]] },
+      { n: "click_events", s: "Event stream → warehouse", f: [["code", "string(7)", ""], ["ts", "timestamp", ""], ["referrer", "string", ""], ["country", "string(2)", "from IP at the edge"]] },
+    ],
+    trade: [
+      { t: "How to generate codes", o: ["Hash long URL (MD5) and keep 7 chars", "Counter + base62", "Pre-generated key pool"], c: [1], pick: "Counter ranges leased from an ID service, encoded base62", why: "No collision checks and no DB round trip per write. Sequential codes are guessable, so shuffle the bits (or XOR with a secret) before encoding." },
+      { t: "301 or 302 redirect", o: ["301 permanent", "302 temporary"], c: [1], pick: "302", why: "Browsers cache a 301 and never come back, which saves load but loses every click after the first. Use 301 only if analytics don't matter." },
+      { t: "SQL or NoSQL for links", o: ["PostgreSQL", "DynamoDB / Cassandra"], c: [1], pick: "NoSQL keyed by code", why: "One key lookup, no joins, ~90 TB over five years. A partitioned key-value store scales linearly. PostgreSQL is fine until roughly a few TB." },
+      { t: "Cache policy", o: ["Cache-aside with LRU", "Write-through"], c: [0], pick: "Cache-aside, LRU, TTL ≈ 24 h", why: "Traffic is heavily skewed: a small fraction of links gets most clicks. Caching the daily hot set (~20%) yields hit rates above 90%." },
+    ],
+    fail: [
+      ["Cache cluster node dies", "Miss storm hits the database; redirect latency spikes", "Consistent hashing so only one shard's keys move, request coalescing (single-flight) per code, cache replicas"],
+      ["ID generator unavailable", "New links can't be created", "Servers lease ranges ahead of time so they keep issuing for minutes; run the generator with leader election. Redirects are unaffected."],
+      ["A link goes viral", "One partition and one cache key get hammered", "Local in-process cache on app servers plus caching the 302 at the CDN with a short TTL"],
+      ["Spam and phishing links", "Domain gets blocklisted by browsers", "Rate limit creation per key, async Safe Browsing check, admin takedown flag checked on redirect"],
+      ["Region outage", "Redirects fail for that region", "Multi-region read replicas behind geo-DNS; writes go to a home region and replicate"],
+    ],
+    scale: ["One app server, PostgreSQL and Redis", "Stateless app servers behind a load balancer; add read replicas", "Move links to a partitioned NoSQL store; lease ID ranges from a generator", "Multi-region reads and CDN-cached redirects"],
+    metrics: ["Redirect p99 latency", "Cache hit ratio (target > 90%)", "404 / 410 rate", "Link creations per API key", "ID range exhaustion rate"],
+  },
+  ratelimit: {
+    api: [
+      ["RPC", "check(key, rule_id, cost=1)", "In-process middleware or sidecar. Returns {allowed, remaining, reset_at}."],
+      ["HDR", "X-RateLimit-Limit / -Remaining / -Reset", "Sent on every response so clients can pace themselves."],
+      ["429", "Too Many Requests + Retry-After", "Returned when the bucket is empty. Body says which limit was hit."],
+      ["PUT", "/admin/v1/rules/{id}", "Body {endpoint, scope: key|ip|user, limit, window_s, algorithm}. Validated, then pushed to limiters."],
+    ],
+    data: [
+      { n: "rules", s: "SQL · cached in each limiter", f: [["id", "int", ""], ["endpoint_pattern", "string", "e.g. POST /v1/orders"], ["scope", "enum", "api_key, ip, user"], ["limit", "int", ""], ["window_s", "int", ""], ["algorithm", "enum", "token_bucket, sliding_window"]] },
+      { n: "token bucket", s: "Redis hash · key rl:{scope}:{id}:{rule}", f: [["tokens", "float", "current tokens"], ["last_refill_ms", "int64", "refill lazily on each check"], ["TTL", "", "≈ 2 × window so idle keys disappear"]] },
+      { n: "sliding window counter", s: "Redis · key rl:{id}:{window_start}", f: [["count", "int", "INCR + EXPIRE"], ["estimate", "", "curr + prev × (1 − elapsed/window)"]] },
+    ],
+    trade: [
+      { t: "Which algorithm", o: ["Fixed window", "Sliding log", "Sliding window counter", "Token bucket"], c: [3], pick: "Token bucket (or sliding window counter)", why: "Fixed windows allow 2× bursts at the boundary. Sliding logs are exact but store every timestamp. Token bucket is O(1) memory per key and allows controlled bursts." },
+      { t: "Central store or local counters", o: ["Redis on every request", "Local counters only", "Local batches synced to Redis"], c: [0], pick: "Redis with a Lua script; local fallback", why: "Central counters are accurate across 50 servers at the cost of ~1 ms. Local-only allows N × limit." },
+      { t: "Fail open or fail closed", o: ["Fail open", "Fail closed"], c: [0], pick: "Fail open with a coarse local limit", why: "A limiter outage shouldn't become an API outage. The local limit still stops a single abusive client." },
+      { t: "Where the limiter runs", o: ["API gateway", "Middleware in each service", "Sidecar"], c: [0], pick: "Gateway for global limits; middleware for per-endpoint costs", why: "Rejecting at the edge keeps bad traffic off the fleet." },
+    ],
+    fail: [
+      ["Read-then-write race", "Concurrent requests both pass; limit is exceeded", "Atomic Lua script or INCR then compare"],
+      ["Redis latency spike", "Every API call slows down", "2–5 ms timeout, circuit breaker, fall back to local limiter"],
+      ["One huge customer", "Hot key on one Redis shard", "Redis Cluster sharded by key; split a hot key into N sub-buckets"],
+      ["Clock skew between servers", "Windows disagree; uneven limits", "Use Redis server time inside the script, not the app server clock"],
+      ["Bad rule pushed", "Legitimate traffic blocked", "Validate rules, shadow mode (log only) before enforcing, instant rollback"],
+    ],
+    scale: ["In-process limiter on each server (approximate)", "Shared Redis with atomic Lua scripts", "Redis Cluster; limiter moves into the gateway", "Per-region quotas with async reconciliation"],
+    metrics: ["429s per API key", "Limiter added latency p99", "Fail-open events", "Redis CPU and hot keys"],
+  },
+  chat: {
+    api: [
+      ["WS", "wss://chat.example.com/ws?token=…", "One socket per device. Heartbeat every 30 s."],
+      ["→", "{type: send, conv_id, client_msg_id, body}", "Client frame. client_msg_id is a UUID used for dedup on retry."],
+      ["←", "{type: ack, client_msg_id, msg_id, seq}", "Sent after the message is durably stored."],
+      ["←", "{type: message | presence | typing, …}", "Server pushes to every online member's socket."],
+      ["GET", "/v1/conversations/{id}/messages?before_seq=&limit=50", "History and gap fill after reconnect."],
+      ["POST", "/v1/media", "Returns a pre-signed upload URL; the message carries only the media key."],
+    ],
+    data: [
+      { n: "messages", s: "Cassandra · partition (conv_id, month) · cluster seq DESC", f: [["conv_id", "uuid", ""], ["seq", "bigint", "per-conversation order"], ["msg_id", "uuid", ""], ["sender_id", "uuid", ""], ["body", "text", "or ciphertext with E2E"], ["media_key", "string", "nullable"], ["ts", "timestamp", ""]] },
+      { n: "conversation_members", s: "NoSQL · partition conv_id", f: [["conv_id", "uuid", ""], ["user_id", "uuid", ""], ["last_read_seq", "bigint", "drives unread counts"], ["muted", "bool", ""]] },
+      { n: "sessions", s: "Redis · TTL refreshed by heartbeat", f: [["user_id", "uuid", "key"], ["device_id → server_id", "map", "which socket server holds the connection"], ["last_seen", "timestamp", "presence"]] },
+    ],
+    trade: [
+      { t: "Transport", o: ["Long polling", "Server-Sent Events", "WebSockets"], c: [2], pick: "WebSockets", why: "Two-way and cheap per message. The cost is stateful servers: you need reconnect logic and a session registry." },
+      { t: "Ordering", o: ["Client timestamps", "Server timestamps", "Per-conversation sequence"], c: [2], pick: "Per-conversation sequence number", why: "Clocks skew. A counter per conversation (Redis INCR, or assigned by the partition owner) gives a total order clients can use to detect gaps." },
+      { t: "Delivery guarantee", o: ["At most once", "At least once + dedup", "Exactly once"], c: [1], pick: "At least once, dedup by client_msg_id", why: "Exactly once isn't achievable over unreliable networks; idempotent writes make retries safe." },
+      { t: "Group fan-out", o: ["Write a copy per member", "Store once, members read"], c: [1], pick: "Store once; push notifications per online member", why: "Copying a message 500 times multiplies storage and write load." },
+    ],
+    fail: [
+      ["Socket server crashes", "Up to ~100k users disconnect at once", "Clients reconnect with exponential backoff + jitter, then fetch messages after their last seq"],
+      ["Message bus lag", "Delivery delayed by seconds", "Partition by conv_id, alert on consumer lag, scale consumers"],
+      ["Client retries after a lost ack", "Duplicate messages", "Unique (conv_id, client_msg_id); the server returns the original ack"],
+      ["Flaky mobile network", "Presence flaps online/offline", "30–60 s grace period before marking offline"],
+      ["Deploy restarts all servers", "Thundering herd of reconnects", "Drain connections gradually and spread reconnects with jitter"],
+    ],
+    scale: ["Single server holding sockets, PostgreSQL", "Several socket servers + Redis session registry", "Kafka bus partitioned by conversation; Cassandra for messages", "Users homed to a region; cross-region relay for chats that span regions"],
+    metrics: ["Send → deliver p99", "Open sockets per server", "Ack failure rate", "Bus consumer lag", "Push delivery rate"],
+  },
+  feed: {
+    api: [
+      ["POST", "/v1/posts", "Body {text, media_ids[]}. Returns 201 {post_id}. Publishes a post_created event."],
+      ["GET", "/v1/timeline?cursor=&limit=20", "Returns {posts[], next_cursor}. Cursor is the last post_id seen."],
+      ["POST", "/v1/users/{id}/follow", "Also DELETE to unfollow. Updates both follower and following indexes."],
+      ["POST", "/v1/posts/{id}/likes", "Idempotent per user."],
+      ["POST", "/v1/media", "Returns a pre-signed upload URL; images served via CDN."],
+    ],
+    data: [
+      { n: "posts", s: "NoSQL · partition author_id · cluster post_id DESC", f: [["post_id", "int64", "Snowflake: time-sortable"], ["author_id", "uuid", ""], ["text", "string(280)", ""], ["media_keys", "list", ""], ["created_at", "timestamp", ""]] },
+      { n: "follows", s: "Two tables: by follower and by followee", f: [["follower_id", "uuid", ""], ["followee_id", "uuid", ""], ["created_at", "timestamp", ""]] },
+      { n: "timeline", s: "Redis sorted set · key tl:{user_id}", f: [["member", "post_id", "IDs only, hydrated at read"], ["score", "post_id", "time-ordered"], ["cap", "≈ 800", "trim the tail on insert"]] },
+      { n: "like_counts", s: "Sharded counter", f: [["post_id", "int64", ""], ["shard", "int", "0–N, summed on read"], ["count", "int64", ""]] },
+    ],
+    trade: [
+      { t: "Fan-out strategy", o: ["Push: write to followers' timelines", "Pull: merge at read time", "Hybrid"], c: [2], pick: "Hybrid", why: "Push gives fast reads but a 50M-follower post means 50M writes. Push for normal users; pull celebrity posts at read time and merge." },
+      { t: "What the timeline cache holds", o: ["Full post objects", "Post IDs"], c: [1], pick: "Post IDs", why: "IDs are 8 bytes, so you can hold timelines for every active user. Hydrate from a separate post cache." },
+      { t: "Pagination", o: ["Offset", "Cursor"], c: [1], pick: "Cursor on post_id", why: "Offsets shift as new posts arrive and get slow at depth." },
+      { t: "Consistency", o: ["Strong", "Eventual"], c: [1], pick: "Eventual, with read-your-own-writes", why: "A few seconds of delay is fine, except users must see their own post immediately: merge the author's recent posts at read." },
+    ],
+    fail: [
+      ["Celebrity posts", "Fan-out queue backs up for minutes", "Skip fan-out above ~10k followers; pull their posts at read time"],
+      ["Timeline cache lost", "Cold timelines and slow loads", "Rebuild lazily on miss from follows + recent posts; only keep active users cached"],
+      ["Fan-out workers fall behind", "New posts appear late", "Autoscale on queue depth; prioritise users active in the last day"],
+      ["Viral post's like counter", "Hot row contention", "Sharded counters or buffer increments in the stream and flush periodically"],
+      ["Deleted post", "Still referenced in millions of timelines", "Tombstone; filter at hydration rather than scrubbing every timeline"],
+    ],
+    scale: ["Pull model on a relational DB", "Timeline cache + fan-out workers", "Hybrid fan-out for celebrities", "Shard everything by user; multi-region with local timeline caches"],
+    metrics: ["Timeline p99 latency", "Fan-out lag (post → visible)", "Timeline cache hit ratio", "Queue depth", "Feed engagement rate"],
+  },
+  notify: {
+    api: [
+      ["POST", "/v1/notifications", "Body {user_id | segment, channels[], template_id, params, idempotency_key, send_at?}. Returns 202 {notification_id}."],
+      ["GET", "/v1/notifications/{id}", "Status per channel: queued, sent, delivered, failed."],
+      ["PUT", "/v1/users/{id}/preferences", "Body {push, sms, email: opted_in, quiet_hours, tz}."],
+      ["POST", "/v1/campaigns", "Body {segment, template_id, schedule}. The scheduler expands it into batches."],
+      ["POST", "/v1/providers/{name}/callbacks", "Delivery receipts and bounces from APNs, Twilio, SES."],
+    ],
+    data: [
+      { n: "notifications", s: "NoSQL · partition user_id", f: [["id", "uuid", ""], ["idempotency_key", "string", "unique: blocks duplicates"], ["channel", "enum", "push, sms, email"], ["status", "enum", "queued → sent → delivered / failed"], ["attempts", "int", ""], ["created_at", "timestamp", ""]] },
+      { n: "preferences", s: "SQL · cached", f: [["user_id", "uuid", ""], ["channel", "enum", ""], ["opted_in", "bool", ""], ["quiet_start / quiet_end", "time", "in the user's tz"]] },
+      { n: "templates", s: "SQL", f: [["id", "string", ""], ["channel", "enum", ""], ["locale", "string", ""], ["subject / body", "text", "with {{placeholders}}"], ["version", "int", ""]] },
+      { n: "devices", s: "SQL", f: [["user_id", "uuid", ""], ["push_token", "string", "pruned when provider reports invalid"], ["platform", "enum", "ios, android, web"]] },
+    ],
+    trade: [
+      { t: "Queue layout", o: ["One queue", "Per channel", "Per channel and priority"], c: [2], pick: "Per channel and priority", why: "A marketing blast must never delay a login OTP, and slow email mustn't block push." },
+      { t: "Delivery semantics", o: ["Exactly once", "At least once + idempotency"], c: [1], pick: "At least once with an idempotency key", why: "Providers can't take part in a transaction; dedupe on the key before calling them." },
+      { t: "When to render templates", o: ["At enqueue", "At send"], c: [1], pick: "At send", why: "Picks up the latest preferences and opt-outs, at the cost of rendering in the worker." },
+      { t: "Provider strategy", o: ["Single provider per channel", "Primary + fallback"], c: [1], pick: "Primary + fallback", why: "SMS and email providers have regional outages; failover keeps OTPs flowing." },
+    ],
+    fail: [
+      ["Provider outage", "Channel stops delivering", "Retry with exponential backoff, fail over to a secondary provider, dead-letter after N attempts"],
+      ["Provider throttles us (429)", "Errors and retries pile up", "Token bucket per provider in the workers; slow consumption instead of retrying hot"],
+      ["Worker crashes after sending, before ack", "Message redelivered → duplicate", "Check idempotency key + status before calling the provider"],
+      ["Campaign floods the system", "Transactional messages delayed", "Separate high-priority queues and worker pools"],
+      ["Stale push tokens", "Wasted sends and provider penalties", "Remove tokens the provider marks invalid"],
+    ],
+    scale: ["Send synchronously from the API", "Queue + worker pool", "Per-channel and per-priority queues; scheduler for campaigns", "Multiple providers per channel, regional deployment"],
+    metrics: ["Oldest message age per queue", "Delivery rate per provider", "Enqueue → sent p95", "Dead-letter queue size", "Opt-out and bounce rates"],
+  },
+  autocomplete: {
+    api: [
+      ["GET", "/v1/suggest?q={prefix}&locale=en&limit=5", "Returns {suggestions: [{text, score}]}. Cache-Control: max-age=300 so CDN and browser cache it."],
+      ["EVT", "query_submitted {query, locale, ts, session_id}", "Logged asynchronously; never on the suggestion path."],
+      ["POST", "/admin/v1/blocklist", "Body {term}. Takes effect at serve time within seconds."],
+    ],
+    data: [
+      { n: "prefix_topk", s: "KV · key {locale}:{prefix}", f: [["prefix", "string", "up to ~20 chars"], ["suggestions", "list(5)", "[(term, score)] precomputed"], ["snapshot_version", "int", "atomic switch between builds"]] },
+      { n: "trie (in memory)", s: "Suggestion servers", f: [["node", "char", ""], ["children", "map", ""], ["top_k", "list(5)", "stored at every node, so lookup is O(prefix length)"]] },
+      { n: "query_counts", s: "Warehouse · rebuilt daily", f: [["term", "string", ""], ["locale", "string", ""], ["count_7d", "int64", ""], ["score", "float", "time-decayed popularity"]] },
+    ],
+    trade: [
+      { t: "Serving structure", o: ["SQL LIKE 'prefix%'", "Trie in memory", "Precomputed prefix → top-k table"], c: [2], pick: "Precomputed prefix table, loaded into memory", why: "Lookup is one hash get. Storing top-k at each prefix trades memory for latency." },
+      { t: "Freshness", o: ["Daily batch", "Real-time streaming"], c: [0], pick: "Daily batch + small trending layer", why: "Popularity changes slowly; a streaming top-N for the last hour catches breaking news." },
+      { t: "Personalisation", o: ["Global suggestions", "Per-user"], c: [0], pick: "Global, with light re-ranking on the client", why: "Global results are cacheable at the CDN; per-user results aren't." },
+      { t: "Client behaviour", o: ["Request every keystroke", "Debounce 100–150 ms"], c: [1], pick: "Debounce and cancel stale requests", why: "Cuts traffic by ~50% without users noticing." },
+    ],
+    fail: [
+      ["Offensive suggestion goes live", "Brand and safety incident", "Blocklist filter at serve time with instant purge from caches"],
+      ["Corrupt snapshot published", "Garbage suggestions everywhere", "Validate builds, keep versioned snapshots, switch atomically, one-click rollback"],
+      ["Hot short prefixes (\"a\", \"th\")", "One shard overloaded", "Replicate hot prefixes, CDN cache single- and two-letter prefixes"],
+      ["Aggregation job fails", "No new rankings", "Keep serving the previous snapshot; stale is acceptable"],
+    ],
+    scale: ["SQL LIKE queries", "In-memory trie on each server", "Prefix-sharded servers with KV snapshots", "CDN / browser caching and a trending stream"],
+    metrics: ["Suggest p99 latency", "Suggestion click-through rate", "Snapshot age", "CDN hit ratio"],
+  },
+  video: {
+    api: [
+      ["POST", "/v1/videos", "Body {title, description, size_bytes}. Returns {video_id, upload_url} with a pre-signed multipart upload."],
+      ["PUT", "{upload_url}?partNumber=n", "Client uploads parts straight to object storage. API servers never see the bytes."],
+      ["POST", "/v1/videos/{id}/complete", "Finalises the upload and enqueues transcoding."],
+      ["GET", "/v1/videos/{id}", "Metadata, status, and manifest_url (HLS .m3u8) served from the CDN."],
+      ["POST", "/v1/views", "Batched view beacons from players; aggregated in a stream."],
+    ],
+    data: [
+      { n: "videos", s: "SQL · shard by video_id", f: [["video_id", "string(11)", ""], ["owner_id", "uuid", ""], ["title / description", "text", ""], ["status", "enum", "uploading → processing → ready / failed"], ["duration_s", "int", ""]] },
+      { n: "renditions", s: "SQL", f: [["video_id", "string", ""], ["resolution", "enum", "240p … 2160p"], ["bitrate_kbps", "int", ""], ["codec", "enum", "h264, vp9, av1"], ["manifest_path", "string", "hls/{id}/{res}/index.m3u8"]] },
+      { n: "transcode_jobs", s: "Queue + job table", f: [["job_id", "uuid", ""], ["video_id", "string", ""], ["chunk", "int", "videos split into ~10 s chunks"], ["attempts", "int", ""], ["state", "enum", ""]] },
+      { n: "object layout", s: "Object storage", f: [["raw/{id}/source", "", "original upload"], ["hls/{id}/{res}/seg_00042.ts", "", "2–6 s segments"]] },
+    ],
+    trade: [
+      { t: "Upload path", o: ["Through API servers", "Pre-signed direct to storage"], c: [1], pick: "Direct to storage", why: "Moving 4 GB through app servers wastes bandwidth and ties up connections. Multipart uploads are resumable." },
+      { t: "Transcoding granularity", o: ["Whole file per worker", "Split into chunks (DAG)"], c: [1], pick: "Chunks in parallel", why: "A 2-hour video finishes in minutes instead of hours; the cost is orchestration and stitching." },
+      { t: "Segment length", o: ["2 s", "4 s", "6 s", "10 s"], c: [1], pick: "~4 s", why: "Shorter segments start faster and adapt quicker; longer ones mean fewer requests and better compression." },
+      { t: "View counting", o: ["Increment per view", "Aggregate in a stream"], c: [1], pick: "Stream aggregation, approximate in real time", why: "1B writes a day to one counter row per video won't scale." },
+    ],
+    fail: [
+      ["Worker dies mid-transcode", "Job stuck", "Queue visibility timeout returns the job; chunks are idempotent so retries are safe"],
+      ["Corrupt video crashes encoder", "Endless retries", "Max attempts → dead-letter queue → mark failed and tell the creator"],
+      ["New video goes viral", "CDN miss storm hits origin", "Origin shield tier and request collapsing; pre-warm for big creators"],
+      ["Upload interrupted at 90%", "Creator starts over", "Multipart upload: resume the missing parts only"],
+      ["Region's storage degraded", "Playback errors", "Cross-region replication of renditions; CDN fails over to a second origin"],
+    ],
+    scale: ["Single transcoder, files on disk", "Object storage + queue + worker pool", "Chunked parallel transcoding and a multi-tier CDN", "Per-codec ladders (AV1 for popular videos), regional origins"],
+    metrics: ["Time to first frame", "Rebuffering ratio", "Transcode queue age", "CDN hit ratio", "Egress cost per view"],
+  },
+  ride: {
+    api: [
+      ["WS", "{type: loc, lat, lng, heading, speed, ts}", "Driver app sends every 4 s over a persistent socket."],
+      ["POST", "/v1/rides", "Body {pickup, dropoff, product}. Returns {ride_id, eta_s, fare_estimate}. Takes an idempotency key."],
+      ["←", "{type: offer, ride_id, pickup, expires_in: 15}", "Pushed to one driver at a time."],
+      ["POST", "/v1/offers/{id}/accept", "Driver accepts; server does compare-and-set on driver status."],
+      ["GET", "/v1/rides/{id}", "Status and live driver position for the rider."],
+      ["POST", "/v1/rides/{id}/complete", "Computes the final fare and triggers payment."],
+    ],
+    data: [
+      { n: "driver_locations", s: "Geo index (Redis GEO / in-memory) · TTL 30 s", f: [["driver_id", "uuid", ""], ["lat / lng", "float", ""], ["cell", "string", "geohash-6 or H3 res 9"], ["status", "enum", "available, offered, on_trip"], ["updated_at", "timestamp", ""]] },
+      { n: "rides", s: "SQL · shard by city", f: [["ride_id", "uuid", ""], ["rider_id / driver_id", "uuid", ""], ["status", "enum", "requested → matched → arrived → in_progress → completed / cancelled"], ["pickup / dropoff", "point", ""], ["fare_cents", "int", ""]] },
+      { n: "payments", s: "SQL", f: [["payment_id", "uuid", ""], ["ride_id", "uuid", ""], ["amount_cents", "int", ""], ["status", "enum", "pending, captured, failed, refunded"], ["idempotency_key", "string", "unique"]] },
+      { n: "location_history", s: "Stream → object storage", f: [["driver_id", "uuid", ""], ["points", "list", "for trip replay, disputes and ETA models"]] },
+    ],
+    trade: [
+      { t: "Spatial index", o: ["Geohash", "Quadtree", "H3 hexagons"], c: [0, 2], pick: "Geohash or H3 cells in an in-memory index", why: "Cells turn 'nearby' into a lookup of the current cell and its neighbours. H3 hexagons have uniform neighbour distances; geohash is simpler." },
+      { t: "Preventing double booking", o: ["Database transaction", "Distributed lock", "Compare-and-set on status"], c: [2], pick: "Atomic compare-and-set on the driver's status", why: "available → offered must succeed for exactly one ride; the offer expires after 15 s." },
+      { t: "Partitioning", o: ["By user", "By city / region"], c: [1], pick: "By city", why: "Matching is local, so a city's drivers, riders and rides live together." },
+      { t: "Location storage", o: ["Every point in a DB", "Latest point in memory + history in a stream"], c: [1], pick: "Latest in memory, history streamed to cold storage", why: "1.25M writes/s of points no one queries in real time." },
+    ],
+    fail: [
+      ["Two riders offered the same driver", "Double booking", "Compare-and-set on driver status; losing offer is retried with the next driver"],
+      ["Driver app goes silent", "Ghost drivers shown on the map", "Location TTL of ~30 s drops stale drivers from the index"],
+      ["Matching service down", "No rides start", "Queue requests, retry, and degrade to a wider search radius"],
+      ["Payment provider timeout", "Unknown charge status", "Idempotent charge with retries and a reconciliation job"],
+      ["City's region fails", "Outage for the whole city", "Warm standby region with replicated ride state; drivers reconnect"],
+    ],
+    scale: ["Single service; locations in PostgreSQL + PostGIS", "Socket servers, Redis GEO for live locations", "Kafka location stream; matching service sharded by city", "Region-per-geography, H3 indexing, surge pricing service"],
+    metrics: ["Match latency", "Match success rate", "Location ingest lag", "ETA error", "Payment failure rate"],
+  },
+  crawler: {
+    api: [
+      ["RPC", "frontier.enqueue(url, priority, not_before)", "Normalises the URL, checks the seen set, then queues it."],
+      ["RPC", "frontier.lease(worker_id) → url", "Returns a URL whose host is allowed to be fetched now."],
+      ["RPC", "fetch(url) → {status, headers, body, links[]}", "Checks robots.txt first, obeys crawl-delay."],
+      ["POST", "/admin/v1/seeds", "Body {urls[], priority}. Starts or extends a crawl."],
+      ["GET", "/admin/v1/stats", "Pages/s, frontier size, errors per host."],
+    ],
+    data: [
+      { n: "frontier", s: "Priority queues → per-host queues", f: [["front queues", "by priority", "PageRank / freshness"], ["back queues", "one per host", "guarantees politeness"], ["host heap", "next_allowed_at", "picks the next host that may be fetched"]] },
+      { n: "seen_urls", s: "KV or Bloom filter", f: [["url_fingerprint", "uint64", "hash of the normalised URL"], ["last_crawled", "timestamp", ""]] },
+      { n: "page_meta", s: "NoSQL · partition by host", f: [["url", "string", ""], ["status", "int", ""], ["content_hash", "uint64", "SimHash for near-dup"], ["fetched_at / next_crawl", "timestamp", ""]] },
+      { n: "robots_cache", s: "Cache · TTL 24 h", f: [["host", "string", ""], ["rules", "text", "parsed allow/disallow"], ["crawl_delay_s", "int", ""]] },
+    ],
+    trade: [
+      { t: "Traversal order", o: ["BFS", "Priority (importance, freshness)"], c: [1], pick: "Priority queues", why: "BFS spends the budget on low-value pages; priority fetches important and changing pages first." },
+      { t: "Seen-URL set", o: ["Exact KV store", "Bloom filter"], c: [1], pick: "Bloom filter in front of a KV store", why: "A Bloom filter answers 'definitely new' in memory; false positives only skip a few pages." },
+      { t: "Politeness", o: ["Distributed lock per host", "Host → single queue owner"], c: [1], pick: "Each host mapped to one back queue / worker", why: "No coordination needed to keep ≤ 1 request/s per host." },
+      { t: "JavaScript pages", o: ["Raw HTML only", "Headless browser for everything"], c: [0], pick: "Raw HTML, render selectively", why: "Headless rendering costs ~10× more CPU per page." },
+    ],
+    fail: [
+      ["Spider trap (infinite calendar URLs)", "Crawl budget wasted on one site", "Max depth and pages per host, URL length limits, pattern detection"],
+      ["Worker crashes holding URLs", "URLs lost", "Leased URLs with visibility timeout return to the frontier"],
+      ["DNS resolution bottleneck", "Throughput collapses", "Local caching resolver and prefetching DNS for queued hosts"],
+      ["Site blocks or rate limits us", "Errors, reputation damage", "Respect robots.txt, back off on 429/503, identify the user agent"],
+      ["Huge or binary responses", "Workers stall, storage fills", "Max response size, content-type filter, read timeouts"],
+    ],
+    scale: ["Single-machine crawler", "Shared frontier queue + fetcher pool", "Host-partitioned frontier, Bloom filter, DNS cache", "Geo-distributed fetchers close to the sites they crawl"],
+    metrics: ["Pages fetched per second", "Frontier size", "Duplicate rate", "Error rate per host", "Average page age (freshness)"],
+  },
+  filesync: {
+    api: [
+      ["POST", "/v1/files/commit", "Body {path, block_hashes[], base_version}. Returns {missing_blocks[]}, then 200 {version} once all blocks exist; 409 on conflict."],
+      ["PUT", "{presigned_url}", "Upload a 4 MB block. Its SHA-256 hash is its ID, so retries are idempotent."],
+      ["GET", "/v1/files/{id}?version=", "Returns the ordered block list; blocks are downloaded from storage / CDN."],
+      ["GET", "/v1/changes?cursor=", "Long poll or WebSocket event {changed, namespace_id, cursor}; client then pulls the delta."],
+      ["POST", "/v1/shares", "Body {folder_id, user_id, role}."],
+    ],
+    data: [
+      { n: "files", s: "SQL · shard by namespace_id", f: [["file_id", "uuid", ""], ["namespace_id", "uuid", "a user's root or a shared folder"], ["path", "string", ""], ["latest_version", "int", ""], ["is_deleted", "bool", ""]] },
+      { n: "file_versions", s: "SQL", f: [["file_id", "uuid", ""], ["version", "int", ""], ["block_hashes", "list", "ordered"], ["size", "int64", ""], ["modified_by_device", "uuid", ""]] },
+      { n: "blocks", s: "SQL index + object storage", f: [["hash", "sha256", "primary key"], ["size", "int", ""], ["ref_count", "int", "for garbage collection"]] },
+      { n: "journal", s: "SQL · per namespace", f: [["namespace_id", "uuid", ""], ["cursor", "bigint", "monotonic"], ["file_id", "uuid", ""], ["op", "enum", "add, modify, delete, move"]] },
+    ],
+    trade: [
+      { t: "Chunking", o: ["Fixed 4 MB blocks", "Content-defined chunking"], c: [1], pick: "Content-defined (Rabin fingerprint) for large files", why: "Inserting a byte at the start shifts every fixed block; CDC boundaries move with the content." },
+      { t: "Deduplication scope", o: ["Per user", "Global"], c: [0], pick: "Per user (or per org)", why: "Global dedupe saves more but leaks whether a file exists elsewhere." },
+      { t: "Conflict resolution", o: ["Last writer wins", "Conflicted copy"], c: [1], pick: "Conflicted copy", why: "Silently discarding a user's edits is worse than an extra file they can merge." },
+      { t: "Change notification", o: ["Periodic polling", "Long polling", "WebSockets"], c: [2], pick: "WebSocket nudge + cursor-based pull", why: "The socket only says 'something changed'; the journal cursor makes sync correct even if a nudge is lost." },
+    ],
+    fail: [
+      ["Upload interrupted", "Partial file", "Commit lists missing blocks; client uploads only those. Blocks are idempotent by hash."],
+      ["Two devices edit offline", "Conflicting versions", "Optimistic concurrency on base_version; the loser becomes a conflicted copy"],
+      ["Notifier down", "Devices don't hear about changes", "Clients fall back to polling /changes with their cursor"],
+      ["Orphaned blocks", "Storage cost grows", "Reference counting + GC with a grace period"],
+      ["Silent data corruption", "File unreadable", "Verify hashes on upload and download; erasure coding and cross-region replicas"],
+    ],
+    scale: ["Upload whole files to one server", "Blocks in object storage, metadata in SQL", "Sharded metadata by namespace, change journal, notifier fleet", "Content-defined chunking, LAN sync, multi-region storage"],
+    metrics: ["Sync latency (save → other device)", "Commit conflict rate", "Upload retry rate", "Bytes deduplicated", "Notifier connection count"],
+  },
+};
+
+/* =========================================================
    State and persistence
    ========================================================= */
 const W = 172, H = 58, GX = 222, GY = 112, OX = 40, OY = 48;
@@ -1128,6 +1507,7 @@ document.addEventListener("keydown", (ev) => {
   if ((ev.key === "Delete" || ev.key === "Backspace") && sel) { ev.preventDefault(); removeSelected(); }
   if (ev.key === "Escape") {
     if (!$("levels").hidden) { closeLevels(); return; }
+    if (!$("advWide").hidden) { closeAdvWide(); return; }
     if (sel) { sel = null; renderBoard(); renderInspect(); }
   }
 });
@@ -1136,7 +1516,8 @@ document.addEventListener("keydown", (ev) => {
    Right panel
    ========================================================= */
 function showTab(name) {
-  for (const t of ["brief", "inspect", "score"]) {
+  if (name === "adv") renderAdvanced();
+  for (const t of ["brief", "inspect", "score", "adv"]) {
     const tab = $("tab" + t[0].toUpperCase() + t.slice(1));
     tab.setAttribute("aria-selected", String(t === name));
     $("pane" + t[0].toUpperCase() + t.slice(1)).hidden = t !== name;
@@ -1160,6 +1541,7 @@ function renderBrief() {
     if (S.hints < c.hints.length) h += `<div class="row"><button class="btn small" id="hintBtn">Reveal hint ${S.hints + 1} of ${c.hints.length}</button><span class="muted">costs 5 points</span></div>`;
     h += `</div>`;
   }
+  h += `<button class="adv-link" id="advLink"><b>Advanced notes</b><span>${ADV[c.id] ? "API design, data model, trade-offs, failure modes and fixes, scaling path, metrics" : "The interview framework: how to spend 45 minutes"}</span></button>`;
   h += `<details class="sec"><summary>How to play</summary><ul>
     <li>Read the requirements, then build the request path from the client inward.</li>
     <li>Drag components from the palette, or tap one to drop it in the middle of the board.</li>
@@ -1170,6 +1552,7 @@ function renderBrief() {
   $("paneBrief").innerHTML = h;
   const hb = $("hintBtn");
   if (hb) hb.onclick = () => { S.hints++; persist(); renderBrief(); };
+  $("advLink").onclick = () => showTab("adv");
 }
 
 function renderInspect() {
@@ -1220,6 +1603,76 @@ function renderInspect() {
     $("delBtn").onclick = removeSelected;
   }
 }
+
+/* =========================================================
+   Advanced notes
+   ========================================================= */
+const FRAMEWORK = [
+  ["Clarify requirements", "5 min", "Functional scope, users, read/write mix, consistency and latency targets. Write them down."],
+  ["Back-of-the-envelope", "5 min", "QPS (avg and peak), storage per year, bandwidth, memory for caches."],
+  ["API design", "5 min", "The 3–5 core endpoints with request and response shapes."],
+  ["Data model", "5 min", "Entities, keys, access patterns; pick stores to match the patterns."],
+  ["High-level design", "10 min", "Draw the request path end to end. This is what the board is for."],
+  ["Deep dives", "10 min", "Go deep on the hardest 1–2 parts: the bottleneck, the consistency problem, the hot key."],
+  ["Failures and wrap-up", "5 min", "What breaks, how you'd know (metrics), how you'd recover, what you'd do next."],
+];
+const ADV_GENERIC_FAIL = [
+  ["Single instance of anything", "One crash takes the system down", "Replicas behind a load balancer; leader election for singletons"],
+  ["Cache goes cold", "Database overwhelmed", "Request coalescing, warm-up, and rate limits in front of the DB"],
+  ["Downstream dependency slow", "Threads pile up; cascading failure", "Timeouts, retries with backoff + jitter, circuit breakers, bulkheads"],
+  ["Retry duplicates a write", "Double charge / double send", "Idempotency keys stored with the result"],
+  ["Hot partition", "One shard saturates", "Better key choice, key salting, caching the hot key"],
+];
+
+function advSections(c) {
+  const a = ADV[c.id];
+  const sec = (id, title, body) => `<section class="adv-sec" id="adv-${id}"><h4>${title}</h4>${body}</section>`;
+  const fails = (rows) => rows.map(([f, i, x]) => `<div class="fl"><b>${esc(f)}</b><div class="impact">${esc(i)}</div><div class="fix"><span>Fix</span>${esc(x)}</div></div>`).join("");
+  if (!a) {
+    return [
+      sec("framework", "Interview framework · 45 minutes", `<ol class="steps">${FRAMEWORK.map(([t, m, d]) => `<li><div><b>${esc(t)}</b> <span class="mono" style="color:var(--ink-3)">${m}</span><small>${esc(d)}</small></div></li>`).join("")}</ol>`),
+      sec("failures", "Failure modes that apply to every design", fails(ADV_GENERIC_FAIL)),
+    ];
+  }
+  const api = a.api.map(([m, path, d]) => `<div class="ep"><div class="ep-line"><span class="m m-${m}">${esc(m)}</span><code>${esc(path)}</code></div><p>${esc(d)}</p></div>`).join("");
+  const data = a.data.map((e) => `<div class="ent"><div class="ent-h"><b>${esc(e.n)}</b><span>${esc(e.s)}</span></div><div class="tbl"><table class="fields">${e.f.map(([f, t, n]) => `<tr><td>${esc(f)}</td><td>${esc(t)}</td><td>${esc(n)}</td></tr>`).join("")}</table></div></div>`).join("");
+  const trade = a.trade.map((t) => `<div class="tr"><b>${esc(t.t)}</b><div class="opts">${t.o.map((o, i) => `<span class="${(t.c || []).includes(i) ? "chosen" : ""}">${esc(o)}</span>`).join("")}</div><div class="choice"><span>Pick</span>${esc(t.pick)}</div><p>${esc(t.why)}</p></div>`).join("");
+  return [
+    sec("api", "API design", api),
+    sec("data", "Data model", `<div style="display:flex;flex-direction:column;gap:10px">${data}</div>`),
+    sec("trade", "Trade-offs", trade),
+    sec("fail", "Failure modes and fixes", fails(a.fail)),
+    sec("scale", "Scaling path", `<ol class="steps">${a.scale.map((x) => `<li><div>${esc(x)}</div></li>`).join("")}</ol>`),
+    sec("metrics", "Metrics to watch", `<div class="chips">${a.metrics.map((x) => `<span>${esc(x)}</span>`).join("")}</div>`),
+  ];
+}
+
+function renderAdvanced() {
+  const c = ch(), a = ADV[c.id], pane = $("paneAdv");
+  if (a && !S.adv && !S.result) {
+    pane.innerHTML = `<div class="adv-gate"><b style="font-family:var(--f-display);font-size:17px">Advanced notes for ${esc(c.title)}</b>
+      <p>API design, data model, trade-offs, failure modes and fixes, scaling path and metrics. They describe a strong answer, so you may want to try the board first. Opening them doesn't change your score.</p>
+      <div class="row"><button class="btn primary" id="advOpen">Show advanced notes</button></div></div>`;
+    $("advOpen").onclick = () => { S.adv = true; persist(); renderAdvanced(); };
+    return;
+  }
+  const secs = advSections(c);
+  const toc = a ? `<nav class="adv-toc" aria-label="Sections">${[["api", "APIs"], ["data", "Data model"], ["trade", "Trade-offs"], ["fail", "Failures"], ["scale", "Scaling"], ["metrics", "Metrics"]].map(([id, t]) => `<a href="#adv-${id}" data-jump="${id}">${t}</a>`).join("")}</nav>` : "";
+  pane.innerHTML = `<div class="row" style="justify-content:space-between"><b style="font-family:var(--f-display);font-size:17px">${esc(c.title)}</b><button class="btn small" id="advExpand">Open wide view</button></div>${toc}<div class="adv-grid adv">${secs.join("")}</div>`;
+  pane.querySelectorAll("[data-jump]").forEach((l) => (l.onclick = (ev) => { ev.preventDefault(); pane.querySelector("#adv-" + l.dataset.jump).scrollIntoView({ behavior: "smooth", block: "start" }); }));
+  $("advExpand").onclick = openAdvWide;
+}
+function openAdvWide() {
+  const c = ch();
+  $("advWideTitle").textContent = c.title + " · advanced notes";
+  $("advWideSub").textContent = ADV[c.id] ? "API design, data model, trade-offs, failure modes, scaling path and metrics." : "How to structure a 45-minute round.";
+  $("advWideBody").innerHTML = `<div class="adv-grid adv">${advSections(c).join("").replace(/id="adv-/g, 'id="advw-')}</div>`;
+  lastFocus = document.activeElement;
+  $("advWide").hidden = false; $("advWideClose").focus();
+}
+function closeAdvWide() { $("advWide").hidden = true; lastFocus && lastFocus.focus && lastFocus.focus(); }
+$("advWideClose").onclick = closeAdvWide;
+$("advWide").addEventListener("click", (ev) => { if (ev.target === $("advWide")) closeAdvWide(); });
 
 /* =========================================================
    Scoring
@@ -1302,8 +1755,10 @@ function renderScore() {
   else if (r.score == null) h += `<div class="sec"><ul class="checks"><li class="ok"><span class="ic">✓</span><span class="lbl">No datastores exposed to clients and nothing left unconnected.</span><span class="pts"></span></li></ul></div>`;
   if (c.followups.length) h += `<div class="sec"><h4>Interviewer follow-ups</h4>${list(c.followups)}</div>`;
   const idx = CHALLENGES.indexOf(c), next = CHALLENGES[idx + 1];
+  if (ADV[c.id]) h += `<button class="adv-link" id="advLink2"><b>Go deeper</b><span>APIs, data model, trade-offs and failure modes for this prompt</span></button>`;
   h += `<div class="row">${c.ref ? `<button class="btn" id="refBtn">Show reference design</button>` : ""}${next ? `<button class="btn primary" id="nextBtn">Next: ${esc(next.title)}</button>` : ""}</div>`;
   pane.innerHTML = h;
+  if ($("advLink2")) $("advLink2").onclick = () => showTab("adv");
   if ($("nextBtn")) $("nextBtn").onclick = () => loadChallenge(next.id);
   if ($("refBtn")) {
     let armed = false;
@@ -1418,7 +1873,7 @@ $("clearBtn").onclick = () => {
   clearTimeout(clearTimer); clearArmed = false; $("clearBtn").textContent = "Clear"; $("clearBtn").classList.remove("danger");
   snapshot();
   const f = freshSave(ch());
-  S.nodes = f.nodes; S.edges = []; S.result = null; S.revealed = false; S.hints = 0; S.t0 = Date.now(); sel = null;
+  S.nodes = f.nodes; S.edges = []; S.result = null; S.revealed = false; S.adv = false; S.hints = 0; S.t0 = Date.now(); sel = null;
   changed(); renderBrief(); renderScore(); showTab("brief");
 };
 $("undoBtn").onclick = undo;
