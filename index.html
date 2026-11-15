@@ -169,6 +169,7 @@ h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
   transition: opacity .25s;
 }
 .node.multi { box-shadow: 4px 4px 0 -1.5px var(--node-bg), 4px 4px 0 0 color-mix(in srgb, var(--cat) 45%, var(--line)), 8px 8px 0 -1.5px var(--node-bg), 8px 8px 0 0 color-mix(in srgb, var(--cat) 30%, var(--line)), var(--shadow); }
+.node:hover, .node.sel, .node:focus-visible { z-index: 3; }
 .node.dragging { cursor: grabbing; z-index: 5; }
 .node.sel { border-color: var(--accent); outline: 2.5px solid color-mix(in srgb, var(--accent) 35%, transparent); }
 .node.target { border-color: var(--accent); background: var(--accent-soft); }

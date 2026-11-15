@@ -33,3 +33,12 @@ Each prompt has a rubric of required components, required connections and minimu
 ## Adding a prompt
 
 Prompts live in the `CHALLENGES` array in `index.html`. Each has requirements, a rubric built from the `N` (component present), `E` (connection between kinds) and `C` (instance count) helpers, hints, follow-up questions and a reference layout on a column/row grid.
+
+## Tests
+
+`tests/e2e.js` drives the app in headless Chromium (desktop plus an emulated touch phone) and checks every feature: adding, moving, connecting and deleting components, the inspector, undo, hints, scoring and deductions, the traffic animation, persistence, the timer, reference designs, the prompt picker, the sandbox and dark mode. It also checks that every prompt's reference design scores 100.
+
+```sh
+npm install playwright   # once
+node tests/e2e.js
+```
