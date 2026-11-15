@@ -1,0 +1,1440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Design Round</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: whiteboard practice room. Tool palette left, dotted board centre, interviewer's brief/scorecard right. */
+:root {
+  --paper: #f4f6f3;
+  --board: #fbfcfa;
+  --dot: #d3dad4;
+  --ink: #18221e;
+  --ink-2: #4d5c55;
+  --ink-3: #7d8a83;
+  --line: #dde3de;
+  --panel: #ffffff;
+  --accent: #1f5fd6;
+  --accent-ink: #ffffff;
+  --accent-soft: #e5edfc;
+  --wire: #5c6b64;
+  --good: #1d8a4e;
+  --warn: #b7791f;
+  --bad: #c43d3d;
+  --c-client: #56636c;
+  --c-edge: #0f8a84;
+  --c-compute: #2d63d8;
+  --c-data: #c46a12;
+  --c-msg: #8048c8;
+  --c-svc: #c2416f;
+  --node-bg: #ffffff;
+  --shadow: 0 1px 2px rgb(24 34 30 / .08), 0 4px 14px rgb(24 34 30 / .06);
+  --f-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #111614; --board: #151b18; --dot: #2a332f; --ink: #e5ece8; --ink-2: #a9b6af; --ink-3: #7b8982;
+    --line: #27302c; --panel: #1a211e; --accent: #6f9cff; --accent-ink: #0d1530; --accent-soft: #1d2a45; --wire: #8d9b94;
+    --good: #4cc07f; --warn: #e0a84a; --bad: #f0706e;
+    --c-client: #9aa7b0; --c-edge: #3cc4bb; --c-compute: #6f9cff; --c-data: #f0a050; --c-msg: #b58cf0; --c-svc: #f0779f;
+    --node-bg: #1d2521; --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 4px 14px rgb(0 0 0 / .3);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #111614; --board: #151b18; --dot: #2a332f; --ink: #e5ece8; --ink-2: #a9b6af; --ink-3: #7b8982;
+  --line: #27302c; --panel: #1a211e; --accent: #6f9cff; --accent-ink: #0d1530; --accent-soft: #1d2a45; --wire: #8d9b94;
+  --good: #4cc07f; --warn: #e0a84a; --bad: #f0706e;
+  --c-client: #9aa7b0; --c-edge: #3cc4bb; --c-compute: #6f9cff; --c-data: #f0a050; --c-msg: #b58cf0; --c-svc: #f0779f;
+  --node-bg: #1d2521; --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 4px 14px rgb(0 0 0 / .3);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 14px/1.45 var(--f-body);
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
+
+.app { height: 100%; display: grid; grid-template-rows: auto 1fr; }
+
+/* ---------- top bar ---------- */
+.bar {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding-block: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  border-bottom: 1px solid var(--line); background: var(--panel);
+}
+.brand { display: flex; align-items: center; gap: 8px; font-family: var(--f-display); font-weight: 700; font-size: 18px; letter-spacing: -.01em; }
+.brand svg { width: 26px; height: 26px; flex: none; }
+.pick {
+  display: flex; align-items: center; gap: 8px; min-width: 0;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px;
+}
+.pick:hover { border-color: var(--ink-3); }
+.pick .t { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pick .caret { color: var(--ink-3); }
+.spacer { flex: 1; }
+.tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.timer { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 13px; color: var(--ink-2); padding: 0 4px; }
+.timer.over { color: var(--warn); }
+.btn {
+  border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 7px 12px; font-weight: 500;
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.btn:hover { border-color: var(--ink-3); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.btn.primary:hover { filter: brightness(1.06); }
+.btn.danger { color: var(--bad); }
+.btn.small { padding: 4px 9px; font-size: 13px; }
+
+/* ---------- main layout ---------- */
+.layout { display: grid; grid-template-columns: 228px minmax(0, 1fr) 360px; min-height: 0; }
+
+.palette {
+  border-right: 1px solid var(--line); background: var(--panel);
+  overflow-y: auto; padding: 12px 12px 24px; display: flex; flex-direction: column; gap: 14px; min-height: 0;
+}
+.palette input {
+  width: 100%; border: 1px solid var(--line); background: var(--paper); border-radius: 8px; padding: 7px 10px; font: inherit; color: var(--ink);
+}
+.pgroup { display: flex; flex-direction: column; gap: 4px; }
+.pgroup h3 {
+  font-family: var(--f-body); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3);
+  display: flex; align-items: center; gap: 6px; margin-bottom: 2px;
+}
+.pgroup h3::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--cat); }
+.plist { display: flex; flex-direction: column; gap: 4px; }
+.pitem {
+  display: flex; align-items: center; gap: 8px; text-align: left;
+  border: 1px solid transparent; background: transparent; border-radius: 8px; padding: 5px 6px;
+  touch-action: pan-y; user-select: none; -webkit-user-select: none;
+}
+.pitem:hover { background: var(--paper); border-color: var(--line); cursor: grab; }
+.pitem .nm { font-size: 13px; font-weight: 500; }
+
+.badge {
+  flex: none; min-width: 44px; height: 26px; padding: 0 5px; border-radius: 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font: 600 10.5px/1 var(--f-mono); letter-spacing: .02em;
+  color: var(--cat); background: color-mix(in srgb, var(--cat) 13%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--cat) 55%, transparent);
+}
+.cat-client { --cat: var(--c-client); }
+.cat-edge { --cat: var(--c-edge); }
+.cat-compute { --cat: var(--c-compute); }
+.cat-data { --cat: var(--c-data); }
+.cat-msg { --cat: var(--c-msg); }
+.cat-svc { --cat: var(--c-svc); }
+
+/* ---------- board ---------- */
+.stage { position: relative; min-width: 0; min-height: 0; background: var(--board); }
+.scroller { position: absolute; inset: 0; overflow: auto; }
+.board {
+  position: relative; width: 1500px; height: 1000px;
+  background-image: radial-gradient(var(--dot) 1.2px, transparent 1.3px);
+  background-size: 20px 20px;
+}
+#wires { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+#nodes { position: absolute; inset: 0; pointer-events: none; }
+.wire .line { stroke: var(--wire); stroke-width: 1.8; fill: none; }
+.wire .hit { stroke: transparent; stroke-width: 14; fill: none; cursor: pointer; }
+.wire:hover .line { stroke: var(--ink); }
+.wire.sel .line { stroke: var(--accent); stroke-width: 2.6; }
+.arrow { fill: var(--wire); }
+.arrow.sel { fill: var(--accent); }
+.temp-wire { stroke: var(--accent); stroke-width: 2; stroke-dasharray: 6 5; fill: none; }
+.packet { fill: var(--accent); }
+
+.node {
+  position: absolute; width: 172px; height: 58px; pointer-events: auto;
+  display: flex; align-items: center; gap: 8px; padding: 0 22px 0 8px;
+  background: var(--node-bg); border: 1.5px solid color-mix(in srgb, var(--cat) 45%, var(--line));
+  border-radius: 10px; box-shadow: var(--shadow);
+  touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab;
+  transition: opacity .25s;
+}
+.node.multi { box-shadow: 4px 4px 0 -1.5px var(--node-bg), 4px 4px 0 0 color-mix(in srgb, var(--cat) 45%, var(--line)), 8px 8px 0 -1.5px var(--node-bg), 8px 8px 0 0 color-mix(in srgb, var(--cat) 30%, var(--line)), var(--shadow); }
+.node.dragging { cursor: grabbing; z-index: 5; }
+.node.sel { border-color: var(--accent); outline: 2.5px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+.node.target { border-color: var(--accent); background: var(--accent-soft); }
+.node.cold { opacity: .35; }
+.node .meta { display: flex; flex-direction: column; min-width: 0; }
+.node .nl { font-weight: 600; font-size: 12.5px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.node .nk { font-size: 11px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.node .reps {
+  position: absolute; top: -9px; left: 10px; font: 600 10.5px/1 var(--f-mono);
+  background: var(--ink); color: var(--board); padding: 3px 5px; border-radius: 5px;
+}
+.port {
+  position: absolute; right: -9px; top: 50%; width: 18px; height: 18px; margin-top: -9px; border-radius: 50%;
+  background: var(--node-bg); border: 2px solid var(--cat); cursor: crosshair; touch-action: none;
+  display: grid; place-items: center;
+}
+.port::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--cat); }
+.port:hover { transform: scale(1.2); }
+@media (hover: hover) {
+  .port { opacity: 0; transition: opacity .15s; }
+  .node:hover .port, .node.sel .port, .node:focus-visible .port { opacity: 1; }
+}
+
+.empty-hint {
+  position: absolute; left: 50%; top: 68%; transform: translate(-50%, -50%);
+  width: min(380px, calc(100% - 32px)); text-align: center; color: var(--ink-3); pointer-events: none;
+  font-size: 13.5px;
+}
+.empty-hint strong { color: var(--ink-2); display: block; font-family: var(--f-display); font-size: 17px; margin-bottom: 4px; }
+.legend {
+  position: absolute; left: 12px; bottom: 12px; font-size: 12px; color: var(--ink-3);
+  background: color-mix(in srgb, var(--board) 88%, transparent); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line);
+  pointer-events: none; max-width: calc(100% - 24px);
+}
+.legend kbd { font-family: var(--f-mono); font-size: 11px; border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; background: var(--panel); }
+
+/* ---------- right panel ---------- */
+.panel { border-left: 1px solid var(--line); background: var(--panel); display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+.tabs { display: flex; border-bottom: 1px solid var(--line); padding: 0 8px; gap: 2px; }
+.tab {
+  border: 0; background: none; padding: 11px 12px 9px; font-weight: 500; color: var(--ink-3); border-bottom: 2px solid transparent;
+}
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tab .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-left: 5px; vertical-align: middle; }
+.tabbody { overflow-y: auto; padding: 16px 18px 28px; display: flex; flex-direction: column; gap: 18px; min-height: 0; flex: 1; }
+.sec { display: flex; flex-direction: column; gap: 6px; }
+.sec h4 {
+  margin: 0; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3);
+}
+.sec ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 3px; }
+.sec li::marker { color: var(--ink-3); }
+.mono { font-family: var(--f-mono); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.calc { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+.calc div { font-family: var(--f-mono); font-size: 12px; color: var(--ink-2); }
+.diff { font: 600 10.5px/1 var(--f-mono); text-transform: uppercase; letter-spacing: .06em; padding: 4px 6px; border-radius: 5px; flex: none; }
+.diff.easy { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
+.diff.medium { color: var(--warn); background: color-mix(in srgb, var(--warn) 16%, transparent); }
+.diff.hard { color: var(--bad); background: color-mix(in srgb, var(--bad) 14%, transparent); }
+.diff.free { color: var(--ink-2); background: var(--paper); }
+.brief-head { display: flex; flex-direction: column; gap: 8px; }
+.brief-head h2 { font-size: 24px; letter-spacing: -.015em; line-height: 1.15; }
+.brief-head p { margin: 0; color: var(--ink-2); }
+.hint { border-left: 3px solid var(--warn); padding: 4px 0 4px 10px; color: var(--ink-2); font-size: 13.5px; }
+details summary { cursor: pointer; font-weight: 500; }
+details ul { margin-top: 6px; }
+
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 12px; color: var(--ink-3); font-weight: 500; }
+.field input { border: 1px solid var(--line); background: var(--paper); border-radius: 8px; padding: 7px 10px; font: inherit; color: var(--ink); }
+.stepper { display: flex; align-items: center; gap: 6px; }
+.stepper output { min-width: 36px; text-align: center; font-family: var(--f-mono); font-weight: 600; }
+.ins-head { display: flex; align-items: center; gap: 10px; }
+.ins-head h2 { font-size: 19px; }
+.muted { color: var(--ink-3); font-size: 13px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.conn-list { display: flex; flex-direction: column; gap: 4px; }
+.conn-list div { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+
+/* score */
+.scorecard { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; align-items: center; }
+.score-num { font: 700 56px/1 var(--f-display); letter-spacing: -.03em; grid-row: span 2; font-variant-numeric: tabular-nums; }
+.score-num small { font-size: 18px; color: var(--ink-3); font-weight: 500; }
+.stars { display: flex; gap: 3px; }
+.stars svg { width: 22px; height: 22px; }
+.star-on { fill: var(--warn); }
+.star-off { fill: var(--line); }
+.verdict { font-family: var(--f-display); font-weight: 700; font-size: 16px; }
+.verdict.v3 { color: var(--good); } .verdict.v2 { color: var(--good); } .verdict.v1 { color: var(--warn); } .verdict.v0 { color: var(--bad); }
+.checks { list-style: none; padding: 0 !important; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.checks li { display: grid; grid-template-columns: 18px 1fr auto; gap: 8px; align-items: start; font-size: 13.5px; }
+.checks .ic { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font: 700 11px/1 var(--f-mono); margin-top: 1px; }
+.checks .ok .ic { background: color-mix(in srgb, var(--good) 18%, transparent); color: var(--good); }
+.checks .miss .ic { background: color-mix(in srgb, var(--bad) 14%, transparent); color: var(--bad); }
+.checks .pen .ic { background: color-mix(in srgb, var(--bad) 14%, transparent); color: var(--bad); }
+.checks .miss .lbl { color: var(--ink-2); }
+.checks .pts { font-family: var(--f-mono); font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.checks .ok .pts { color: var(--good); }
+.checks .pen .pts { color: var(--bad); }
+.note { background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; font-size: 13px; }
+
+/* ---------- level select ---------- */
+.overlay {
+  position: fixed; inset: 0; z-index: 50; background: rgb(10 14 12 / .45);
+  display: grid; place-items: center; padding: 16px;
+}
+.sheet {
+  background: var(--panel); border-radius: 14px; width: min(920px, 100%); max-height: 100%; overflow-y: auto;
+  padding: 22px; box-shadow: 0 20px 60px rgb(0 0 0 / .3); display: flex; flex-direction: column; gap: 16px;
+}
+.sheet-head { display: flex; align-items: flex-start; gap: 12px; }
+.sheet-head h2 { font-size: 26px; letter-spacing: -.02em; }
+.sheet-head p { margin: 4px 0 0; color: var(--ink-2); }
+.levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.level {
+  text-align: left; border: 1px solid var(--line); background: var(--paper); border-radius: 10px; padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.level:hover { border-color: var(--ink-3); }
+.level.cur { border-color: var(--accent); }
+.level .top { display: flex; align-items: center; gap: 8px; }
+.level .top b { font-family: var(--f-display); font-size: 16px; flex: 1; }
+.level p { margin: 0; font-size: 13px; color: var(--ink-2); }
+.level .best { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-3); font-family: var(--f-mono); }
+.level .best svg { width: 14px; height: 14px; }
+
+/* ghost while dragging from palette */
+.ghost { position: fixed; z-index: 60; pointer-events: none; opacity: .92; transform: translate(-50%, -50%); }
+.toast {
+  position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 70;
+  background: var(--ink); color: var(--board); padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
+  max-width: calc(100% - 32px);
+}
+
+/* ---------- narrow screens ---------- */
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 200px minmax(0, 1fr) 300px; }
+}
+@media (max-width: 860px) {
+  html, body { height: auto; }
+  .app { height: auto; display: block; }
+  .layout { display: flex; flex-direction: column; }
+  .palette {
+    border-right: 0; border-bottom: 1px solid var(--line); flex-direction: row; overflow-x: auto; overflow-y: hidden;
+    padding: 10px 16px; gap: 16px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  }
+  .palette .search { display: none; }
+  .pgroup { flex: none; }
+  .plist { flex-direction: row; }
+  .pitem { flex-direction: column; gap: 3px; padding: 4px; touch-action: pan-x; }
+  .pitem .nm { font-size: 10.5px; white-space: nowrap; max-width: 76px; overflow: hidden; text-overflow: ellipsis; }
+  .stage { height: 62vh; min-height: 380px; }
+  .panel { border-left: 0; border-top: 1px solid var(--line); }
+  .tabbody { overflow: visible; }
+  .bar .brand span { display: none; }
+  .legend { display: none; }
+  .bar { gap: 8px; }
+  .tools { gap: 6px; width: 100%; }
+  .tools .btn { padding: 6px 9px; font-size: 13px; }
+  .wide { display: none; }
+  .timer { margin-right: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <div class="brand">
+      <svg viewBox="0 0 26 26" aria-hidden="true">
+        <rect x="1" y="2" width="10" height="8" rx="2" fill="none" stroke="var(--c-compute)" stroke-width="2"/>
+        <rect x="15" y="16" width="10" height="8" rx="2" fill="none" stroke="var(--c-data)" stroke-width="2"/>
+        <path d="M6 10v5a3 3 0 0 0 3 3h5" fill="none" stroke="var(--ink)" stroke-width="2"/>
+        <path d="M12 15.5l3 2.5-3 2.5" fill="none" stroke="var(--ink)" stroke-width="2"/>
+      </svg>
+      <span>Design Round</span>
+    </div>
+    <button class="pick" id="levelBtn" aria-haspopup="dialog">
+      <span class="diff" id="pickDiff">easy</span>
+      <span class="t" id="pickTitle">URL Shortener</span>
+      <span class="caret" aria-hidden="true">▾</span>
+    </button>
+    <div class="spacer"></div>
+    <div class="tools">
+      <span class="timer" id="timer" title="Time on this challenge. A real round gives you about 35–45 minutes.">00:00</span>
+      <button class="btn" id="undoBtn" title="Undo (Ctrl+Z)">Undo</button>
+      <button class="btn" id="clearBtn">Clear</button>
+      <button class="btn" id="trafficBtn" title="Animate requests flowing from the clients">Run traffic</button>
+      <button class="btn primary" id="submitBtn">Submit<span class="wide"> design</span></button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="palette" id="palette" aria-label="Components"></aside>
+
+    <section class="stage" aria-label="Design board">
+      <div class="scroller" id="scroller">
+        <div class="board" id="board">
+          <svg id="wires" aria-hidden="true">
+            <defs>
+              <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow" d="M0 0L10 5L0 10z"/></marker>
+              <marker id="arrSel" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow sel" d="M0 0L10 5L0 10z"/></marker>
+            </defs>
+            <g id="wireLayer"></g>
+            <g id="packetLayer"></g>
+            <path id="tempWire" class="temp-wire" d="" />
+          </svg>
+          <div id="nodes"></div>
+        </div>
+      </div>
+      <div class="empty-hint" id="emptyHint" hidden>
+        <strong>Start with the request path</strong>
+        Drag components from the palette onto the board, or tap one to drop it in. Drag from a component's right-hand dot to another component to connect them.
+      </div>
+      <div class="legend">Drag the <b>●</b> handle to connect · <kbd>Del</kbd> removes selection · <kbd>Ctrl Z</kbd> undo</div>
+    </section>
+
+    <aside class="panel">
+      <nav class="tabs" role="tablist">
+        <button class="tab" role="tab" id="tabBrief" aria-selected="true" data-tab="brief">Brief</button>
+        <button class="tab" role="tab" id="tabInspect" aria-selected="false" data-tab="inspect">Inspect</button>
+        <button class="tab" role="tab" id="tabScore" aria-selected="false" data-tab="score">Scorecard</button>
+      </nav>
+      <div class="tabbody" id="paneBrief"></div>
+      <div class="tabbody" id="paneInspect" hidden></div>
+      <div class="tabbody" id="paneScore" hidden></div>
+    </aside>
+  </main>
+</div>
+
+<div class="overlay" id="levels" hidden role="dialog" aria-modal="true" aria-labelledby="levelsTitle">
+  <div class="sheet">
+    <div class="sheet-head">
+      <div style="flex:1">
+        <h2 id="levelsTitle">Pick a prompt</h2>
+        <p>Each prompt is a classic interview question with a hidden scoring rubric. Your board is saved per prompt.</p>
+      </div>
+      <button class="btn" id="levelsClose">Close</button>
+    </div>
+    <div class="levels" id="levelGrid"></div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+"use strict";
+/* =========================================================
+   Component catalogue
+   ========================================================= */
+const CATS = [
+  ["client", "Clients"], ["edge", "Edge & networking"], ["compute", "Compute"],
+  ["data", "Storage"], ["msg", "Messaging"], ["svc", "Supporting services"],
+];
+const KINDS = {
+  client:     { name: "Web Client", abbr: "WEB", cat: "client", desc: "A browser making HTTP requests. Never trust it, and never let it talk to a database directly." },
+  mobile:     { name: "Mobile App", abbr: "APP", cat: "client", desc: "iOS/Android client. Can hold long-lived connections and receive push notifications." },
+  dns:        { name: "DNS", abbr: "DNS", cat: "edge", desc: "Resolves hostnames to IPs. Geo-DNS can send users to the nearest region." },
+  cdn:        { name: "CDN", abbr: "CDN", cat: "edge", desc: "Edge caches close to users for static files, images and video segments. Cuts latency and origin egress." },
+  lb:         { name: "Load Balancer", abbr: "LB", cat: "edge", desc: "Spreads traffic across healthy instances (L4 or L7). Removes the single point of failure of one server." },
+  gateway:    { name: "API Gateway", abbr: "GW", cat: "edge", desc: "Single entry point that handles routing, auth, TLS termination and rate limiting for many services." },
+  ratelimiter:{ name: "Rate Limiter", abbr: "RL", cat: "edge", desc: "Rejects requests over a quota (token bucket, sliding window). Usually backed by a shared in-memory store." },
+  app:        { name: "App Server", abbr: "API", cat: "compute", desc: "Stateless web/API servers. Keep them stateless so you can add instances behind a load balancer." },
+  service:    { name: "Microservice", abbr: "SVC", cat: "compute", desc: "An independently deployed service that owns one domain, such as matching, payments or users." },
+  ws:         { name: "WebSocket Server", abbr: "WS", cat: "compute", desc: "Holds persistent two-way connections for real-time updates such as chat or live location." },
+  worker:     { name: "Worker", abbr: "WRK", cat: "compute", desc: "Background consumers that pull jobs from a queue: transcoding, fan-out, crawling, sending email." },
+  serverless: { name: "Serverless Function", abbr: "FN", cat: "compute", desc: "Event-triggered function that scales to zero. Good for spiky glue work; watch cold starts." },
+  scheduler:  { name: "Scheduler", abbr: "CRON", cat: "compute", desc: "Triggers jobs on a timetable: recrawls, campaigns, nightly batch jobs." },
+  sql:        { name: "Relational DB", abbr: "SQL", cat: "data", desc: "ACID transactions, joins and strong consistency (PostgreSQL, MySQL). Scale reads with replicas, writes with sharding." },
+  replica:    { name: "Read Replica", abbr: "RR", cat: "data", desc: "Asynchronous copy of a primary database that serves reads. Expect replication lag." },
+  nosql:      { name: "NoSQL DB", abbr: "NoSQL", cat: "data", desc: "Wide-column or document store (Cassandra, DynamoDB, MongoDB). Horizontal scale and high write throughput." },
+  kv:         { name: "Key-Value Store", abbr: "KV", cat: "data", desc: "Durable key → value lookups at huge scale with predictable latency." },
+  cache:      { name: "Cache", abbr: "CACHE", cat: "data", desc: "In-memory store (Redis, Memcached) for hot reads, sessions and counters. Decide on eviction and invalidation." },
+  blob:       { name: "Object Storage", abbr: "S3", cat: "data", desc: "Cheap, durable storage for files, images, video and backups. Clients can upload with pre-signed URLs." },
+  search:     { name: "Search Index", abbr: "IDX", cat: "data", desc: "Inverted index for full-text search and filtering (Elasticsearch, OpenSearch)." },
+  geo:        { name: "Geospatial Index", abbr: "GEO", cat: "data", desc: "Geohash or quadtree index that answers \"what is near this point?\"" },
+  warehouse:  { name: "Data Warehouse", abbr: "DW", cat: "data", desc: "Columnar store for analytics over historical data (BigQuery, Redshift, Snowflake)." },
+  queue:      { name: "Message Queue", abbr: "MQ", cat: "msg", desc: "Buffers jobs between producers and consumers (SQS, RabbitMQ). Absorbs spikes; enables retries and dead-letter queues." },
+  stream:     { name: "Event Stream", abbr: "LOG", cat: "msg", desc: "Durable, partitioned, replayable log (Kafka, Kinesis). Many consumer groups can read the same events." },
+  auth:       { name: "Auth Service", abbr: "AUTH", cat: "svc", desc: "Issues and verifies tokens (OAuth, JWT). Usually called by the gateway." },
+  notify:     { name: "Notification Service", abbr: "PUSH", cat: "svc", desc: "Delivers push, SMS and email through providers such as APNs, FCM, Twilio and SES." },
+  idgen:      { name: "ID Generator", abbr: "ID", cat: "svc", desc: "Hands out unique IDs (Snowflake, ticket server, pre-allocated ranges) so servers never collide." },
+  coord:      { name: "Coordination Service", abbr: "ZK", cat: "svc", desc: "ZooKeeper or etcd for leader election, config and distributed locks." },
+  monitor:    { name: "Monitoring", abbr: "OBS", cat: "svc", desc: "Metrics, logs, traces and alerts. Interviewers want to hear how you would know it is broken." },
+};
+
+/* kind groups used by rubrics */
+const CL = ["client", "mobile"];
+const FR = ["lb", "gateway"];
+const CP = ["app", "service", "serverless"];
+const DB = ["sql", "nosql", "kv", "replica"];
+const STORES = ["sql", "nosql", "kv", "replica", "cache", "search", "warehouse", "geo", "queue", "stream"];
+
+/* rubric item helpers */
+const N = (k, pts, label) => ({ t: "node", k, pts, label });
+const E = (a, b, pts, label) => ({ t: "edge", a, b, pts, label });
+const C = (k, min, pts, label) => ({ t: "count", k, min, pts, label });
+const bonus = (item) => Object.assign(item, { bonus: true });
+
+/* =========================================================
+   Challenges
+   Reference layouts: [key, kind, col, row, label?, replicas?]
+   ========================================================= */
+const CHALLENGES = [
+  {
+    id: "url", title: "URL Shortener", diff: "easy",
+    pitch: "Turn long links into 7-character codes and redirect millions of clicks a second.",
+    functional: ["Create a short link from a long URL, with an optional custom alias", "Redirect a short link to the original URL", "Links expire after a configurable TTL"],
+    nonfunctional: ["Redirects under 50 ms at p99", "99.99% availability for redirects", "Short codes never collide"],
+    scale: ["100M new links/day ≈ 1.2k writes/s", "Read:write ≈ 100:1 → ~115k redirects/s at peak", "5 yrs × 100M/day ≈ 180B links × 500 B ≈ 90 TB", "base62, 7 chars → 62^7 ≈ 3.5 trillion codes"],
+    starter: [["c", "client", 0, 1]],
+    rubric: [
+      N(FR, 10, "Load balancer or API gateway in front of the servers"),
+      E(CL, FR, 5, "Clients enter through the load balancer / gateway"),
+      E(FR, CP, 5, "Load balancer routes to the application servers"),
+      C(CP, 2, 10, "At least 2 app server instances (stateless, horizontally scaled)"),
+      N(["nosql", "kv", "sql"], 15, "Durable store for code → URL mappings"),
+      E(CP, DB, 10, "App servers read and write the mapping store"),
+      N(["cache"], 15, "Cache for hot short codes"),
+      E(CP, ["cache"], 10, "App servers check the cache before the database"),
+      N(["idgen", "coord"], 10, "Collision-free code generation (ID generator or ZooKeeper ranges)"),
+      E(CP, ["idgen", "coord"], 10, "App servers fetch IDs from the generator"),
+      bonus(E(CP, ["stream", "queue"], 5, "Click events streamed out for analytics")),
+    ],
+    hints: [
+      "Reads outnumber writes 100 to 1. What can sit between the app and the database to absorb them?",
+      "Two servers creating links at the same moment can pick the same code. How do you hand out unique IDs?",
+      "One app server is a single point of failure. How many do you need, and what spreads traffic across them?",
+    ],
+    followups: ["Base62 of a counter vs. hashing (MD5 then truncate): how do you handle collisions?", "301 or 302 redirect? Which one keeps your click analytics accurate?", "What key do you shard the mapping store on?", "How do you expire links and reclaim their codes?"],
+    ref: {
+      nodes: [["c", "client", 0, 1], ["lb", "lb", 1, 1], ["app", "app", 2, 1, "Shortener API", 3], ["ca", "cache", 3, 0, "Hot codes"], ["db", "nosql", 3, 1, "Link store"], ["id", "idgen", 3, 2, "Key generation"], ["st", "stream", 2, 3, "Click events"], ["mo", "monitor", 1, 3]],
+      edges: [["c", "lb"], ["lb", "app"], ["app", "ca"], ["app", "db"], ["app", "id"], ["app", "st"], ["app", "mo"]],
+    },
+  },
+  {
+    id: "ratelimit", title: "API Rate Limiter", diff: "easy",
+    pitch: "Cap every API key at N requests per minute across a fleet of 50 servers.",
+    functional: ["Limit requests per API key or IP (e.g. 100 req/min)", "Return HTTP 429 with Retry-After when exceeded", "Change rules per endpoint without redeploying"],
+    nonfunctional: ["Adds under 5 ms per request", "Limits hold across all servers (shared state)", "If the limiter fails, the API stays up (fail open)"],
+    scale: ["1M requests/s across 50 API servers", "10M active API keys", "Counters: 10M keys × ~50 B ≈ 500 MB, fits in memory"],
+    starter: [["c", "client", 0, 1]],
+    rubric: [
+      E(CL, ["lb", "gateway", "ratelimiter"], 10, "Clients hit the edge layer first"),
+      N(["ratelimiter", "gateway"], 20, "Rate limiter at the edge (middleware or gateway)"),
+      E(["ratelimiter", "gateway"], CP, 10, "Limiter forwards allowed traffic to the API servers"),
+      N(["cache"], 10, "Shared in-memory counter store"),
+      E(["ratelimiter", "gateway"], ["cache", "kv"], 20, "Counters kept in the shared store, not in each server's memory"),
+      E(["ratelimiter", "gateway"], ["sql", "nosql", "kv"], 10, "Limiter loads rules from a rules store"),
+      C(CP, 2, 10, "API servers scaled horizontally"),
+      bonus(C(["ratelimiter"], 2, 5, "Limiter itself runs as more than one instance")),
+    ],
+    hints: [
+      "If each server counts in its own memory, a client can get 50× the limit. Where do counters live instead?",
+      "Where in the request path should rejection happen so bad traffic never reaches the API servers?",
+      "Product wants to change limits without a deploy. Where are the rules kept?",
+    ],
+    followups: ["Token bucket, leaky bucket, fixed window or sliding log: which one, and why?", "How do you make increment-and-check atomic in Redis (Lua script, INCR + EXPIRE)?", "What happens during a Redis failover? Fail open or fail closed?", "How do you rate limit across multiple regions?"],
+    ref: {
+      nodes: [["c", "client", 0, 1], ["lb", "lb", 1, 1], ["rl", "ratelimiter", 2, 1, "Rate limiter", 2], ["ca", "cache", 2, 0, "Redis counters"], ["rules", "sql", 2, 2, "Rules store"], ["app", "app", 3, 1, "API servers", 3], ["mo", "monitor", 3, 2]],
+      edges: [["c", "lb"], ["lb", "rl"], ["rl", "ca"], ["rl", "rules"], ["rl", "app"], ["app", "mo"]],
+    },
+  },
+  {
+    id: "chat", title: "Chat Messenger", diff: "medium",
+    pitch: "Real-time 1:1 and group messaging with presence and offline push.",
+    functional: ["1:1 and group chats (up to 500 members)", "Real-time delivery with online / last-seen presence", "Message history synced across devices", "Push notification when the recipient is offline"],
+    nonfunctional: ["Delivery latency under 200 ms", "Messages never lost and ordered per conversation", "Highly available"],
+    scale: ["500M daily active users", "50B messages/day ≈ 580k messages/s", "~100 B per message → 5 TB/day of new data"],
+    starter: [["m", "mobile", 0, 1]],
+    rubric: [
+      E(CL, FR, 5, "Clients connect through a load balancer"),
+      N(["ws"], 15, "Persistent connections via WebSocket servers"),
+      E(FR, ["ws"], 10, "Connections spread across WebSocket servers"),
+      C(["ws"], 2, 10, "More than one WebSocket server"),
+      N(["nosql", "kv"], 15, "Write-heavy message store (wide-column / NoSQL)"),
+      E(["ws", "app", "service", "worker"], ["nosql", "kv"], 10, "Messages persisted before they are acknowledged"),
+      E(["ws"], ["stream", "queue"], 15, "Message bus routes messages between WebSocket servers"),
+      E(["ws", "app", "service"], ["cache"], 10, "Presence and session registry in a cache"),
+      N(["notify"], 10, "Push notifications for offline users"),
+      E(["notify"], ["queue", "stream", "ws", "service", "app", "worker"], 5, "Notification service fed by the chat backend"),
+      bonus(N(["blob"], 5, "Object storage for photo and video attachments")),
+    ],
+    hints: [
+      "HTTP polling for every message is wasteful at 580k msg/s. What keeps a connection open?",
+      "Alice is connected to server 3 and Bob to server 41. How does a message get from one to the other?",
+      "How does the backend know which server a user is connected to, or whether they are online at all?",
+    ],
+    followups: ["How do you order messages in a group chat (per-conversation sequence numbers)?", "Where do you store unread counts and how do you sync them across devices?", "How does a client resume after a dropped connection without losing messages?", "Would you fan out group messages on write or on read?"],
+    ref: {
+      nodes: [["m", "mobile", 0, 1], ["lb", "lb", 1, 1], ["ws", "ws", 2, 1, "Chat servers", 3], ["ca", "cache", 3, 0, "Presence & sessions"], ["bus", "stream", 3, 1, "Message bus"], ["db", "nosql", 3, 2, "Message store"], ["pn", "notify", 4, 1, "Offline push"], ["bl", "blob", 1, 3, "Attachments"], ["mo", "monitor", 4, 2]],
+      edges: [["m", "lb"], ["lb", "ws"], ["ws", "ca"], ["ws", "bus"], ["ws", "db"], ["bus", "pn"], ["m", "bl"], ["ws", "mo"]],
+    },
+  },
+  {
+    id: "feed", title: "Social News Feed", diff: "medium",
+    pitch: "A home timeline of posts from everyone you follow, ready in 300 ms.",
+    functional: ["Post short text with photos", "Follow other users", "Home timeline of followed users' posts, newest first", "Like and reply"],
+    nonfunctional: ["Timeline loads in under 300 ms at p99", "Eventual consistency is fine (a few seconds)", "Read-heavy: ~100 timeline reads per post"],
+    scale: ["300M DAU × 10 timeline loads ≈ 35k reads/s avg, 100k peak", "500M posts/day ≈ 6k writes/s", "Celebrity accounts with 50M+ followers"],
+    starter: [["c", "client", 0, 1]],
+    rubric: [
+      N(FR, 10, "Load balancer in front of the services"),
+      E(CL, FR, 5, "Clients enter through the load balancer"),
+      C(CP, 2, 10, "Post and timeline services scale horizontally"),
+      N(DB, 10, "Store for posts and the follow graph"),
+      E(CP, DB, 5, "Services read and write posts"),
+      N(["cache"], 15, "Precomputed timelines held in a cache"),
+      E(CP, ["cache"], 5, "Timeline reads served from the cache"),
+      E(["queue", "stream"], ["worker"], 15, "Fan-out workers consume new-post events"),
+      E(["worker"], ["cache"], 10, "Workers push post IDs into followers' cached timelines"),
+      N(["cdn"], 5, "CDN for photos"),
+      E(["cdn"], ["blob"], 5, "CDN pulls media from object storage"),
+      E(CL, ["cdn"], 5, "Clients load media from the CDN"),
+      bonus(N(["search"], 5, "Search index for posts")),
+    ],
+    hints: [
+      "Building a timeline by querying 500 followees on every load is slow. What if timelines were computed ahead of time?",
+      "Writing a new post into millions of follower timelines can't happen inside the HTTP request. What does that work instead?",
+      "Photos are big and read worldwide. Where should they be served from?",
+    ],
+    followups: ["Fan-out on write vs. fan-out on read: what do you do for celebrities?", "How do you paginate a timeline (cursor vs. offset)?", "How long are cached timelines, and what happens on a cache miss?", "How would you add ranking instead of pure reverse-chronological order?"],
+    ref: {
+      nodes: [["c", "client", 0, 1], ["lb", "lb", 1, 1], ["app", "app", 2, 1, "Post & timeline API", 3], ["ca", "cache", 3, 0, "Timeline cache"], ["q", "queue", 3, 1, "New-post events"], ["db", "nosql", 3, 2, "Posts & follow graph"], ["w", "worker", 4, 1, "Fan-out workers", 3], ["cdn", "cdn", 0, 3], ["bl", "blob", 1, 3, "Media"], ["se", "search", 2, 3, "Post search"], ["mo", "monitor", 4, 2]],
+      edges: [["c", "lb"], ["lb", "app"], ["app", "ca"], ["app", "q"], ["app", "db"], ["q", "w"], ["w", "ca"], ["w", "db"], ["c", "cdn"], ["cdn", "bl"], ["app", "bl"], ["app", "se"], ["app", "mo"]],
+    },
+  },
+  {
+    id: "notify", title: "Notification System", diff: "medium",
+    pitch: "Push, SMS and email for every other team, with opt-outs, retries and campaigns.",
+    functional: ["Send push, SMS and email triggered by other services", "Users can opt out per channel", "Scheduled and bulk campaigns", "Retry when a provider fails"],
+    nonfunctional: ["Soft real-time: delivered within seconds", "At-least-once delivery without showing duplicates", "A slow provider must not delay the other channels"],
+    scale: ["10M push + 1M SMS + 5M email per day", "Campaign spikes of 50M notifications in an hour", "Providers rate-limit us"],
+    starter: [["up", "service", 0, 1, "Upstream services"]],
+    rubric: [
+      E(CP, ["queue", "stream"], 15, "API enqueues notifications instead of sending inline"),
+      C(["queue", "stream"], 2, 10, "A queue per channel so one slow provider can't block the others"),
+      E(["queue", "stream"], ["worker"], 15, "Workers consume from the queues"),
+      C(["worker"], 2, 10, "Several workers for throughput and failover"),
+      E(["worker"], ["notify"], 10, "Workers call the delivery providers (APNs, FCM, Twilio, SES)"),
+      E(["service", "app", "worker"], ["sql", "nosql", "kv"], 10, "Preferences and templates checked before sending"),
+      N(["scheduler"], 10, "Scheduler for timed campaigns"),
+      E(["scheduler"], ["queue", "stream", "service", "app"], 5, "Scheduler triggers sends"),
+      N(["ratelimiter"], 10, "Rate limiting toward providers and users"),
+      bonus(N(["cache"], 3, "Cache for user preferences")),
+      bonus(N(["warehouse"], 3, "Delivery analytics in a warehouse")),
+    ],
+    hints: [
+      "If the notification API calls Twilio inside the request and Twilio is slow, every caller waits. How do you decouple?",
+      "Email is backed up for an hour during a campaign. Should push notifications wait behind it?",
+      "How do you avoid texting a user who opted out, or sending them 40 alerts in a minute?",
+    ],
+    followups: ["How do you deduplicate retries (idempotency keys)?", "Where do failed messages go after N retries (dead-letter queue)?", "How do you respect quiet hours across time zones?", "How do you track delivered / opened events?"],
+    ref: {
+      nodes: [["up", "service", 0, 1, "Upstream services"], ["api", "app", 1, 1, "Notification API", 2], ["ca", "cache", 1, 0, "Prefs cache"], ["db", "sql", 1, 2, "Prefs & templates"], ["sch", "scheduler", 0, 3, "Campaign scheduler"], ["q1", "queue", 2, 0, "Push queue"], ["q2", "queue", 2, 1, "SMS queue"], ["q3", "queue", 2, 2, "Email queue"], ["w", "worker", 3, 1, "Channel workers", 3], ["rl", "ratelimiter", 3, 2, "Provider limits"], ["pr", "notify", 4, 1, "APNs · FCM · Twilio · SES"], ["dw", "warehouse", 4, 2, "Delivery analytics"]],
+      edges: [["up", "api"], ["api", "ca"], ["api", "db"], ["sch", "api"], ["api", "q1"], ["api", "q2"], ["api", "q3"], ["q1", "w"], ["q2", "w"], ["q3", "w"], ["w", "rl"], ["w", "pr"], ["w", "dw"]],
+    },
+  },
+  {
+    id: "autocomplete", title: "Search Autocomplete", diff: "medium",
+    pitch: "Top-5 suggestions on every keystroke in under 100 ms.",
+    functional: ["Suggest the top 5 completions as the user types", "Rank by popularity, refreshed daily", "Filter offensive terms"],
+    nonfunctional: ["Under 100 ms end to end per keystroke", "Highly available; slightly stale suggestions are fine"],
+    scale: ["10M DAU × 20 searches × ~6 keystrokes ≈ 1.2B requests/day", "≈ 14k requests/s average, 30k at peak", "Top 10M prefixes × 5 suggestions fit in memory"],
+    starter: [["c", "client", 0, 1]],
+    rubric: [
+      N(FR, 10, "Load balancer in front of the suggestion servers"),
+      E(CL, FR, 5, "Clients enter through the load balancer"),
+      C(CP, 2, 10, "Suggestion servers scaled out"),
+      E(CP, ["cache"], 20, "Prefix → top-k served from an in-memory trie or cache"),
+      E(CP, ["kv", "nosql"], 10, "Trie snapshots persisted to durable storage"),
+      E(["app", "service", "lb", "gateway"], ["stream", "queue"], 10, "Search queries logged as events"),
+      E(["stream", "queue"], ["worker", "warehouse"], 15, "Aggregation job counts query frequencies"),
+      E(["worker"], ["kv", "nosql", "cache"], 10, "Aggregator publishes the rebuilt trie"),
+      bonus(N(["cdn"], 5, "Popular prefixes cached at the edge / in the browser")),
+    ],
+    hints: [
+      "Hitting a database on every keystroke won't meet 100 ms. What data structure answers prefix queries from memory?",
+      "Popularity has to come from somewhere. What happens to each search after it's typed?",
+      "Rebuilding rankings in the request path is too slow. What runs it offline?",
+    ],
+    followups: ["How do you store top-k at each trie node to avoid walking subtrees?", "How do you shard the trie (by prefix range)?", "How do you push trending queries faster than daily?", "Debounce on the client: how often should it call the server?"],
+    ref: {
+      nodes: [["c", "client", 0, 1], ["cdn", "cdn", 1, 0, "Edge cache"], ["lb", "lb", 1, 1], ["app", "app", 2, 1, "Suggestion API", 3], ["ca", "cache", 3, 0, "Trie (in memory)"], ["kv", "kv", 3, 1, "Trie snapshots"], ["st", "stream", 2, 2, "Query log"], ["w", "worker", 3, 2, "Aggregator"], ["dw", "warehouse", 4, 2, "Query history"]],
+      edges: [["c", "lb"], ["c", "cdn"], ["cdn", "lb"], ["lb", "app"], ["app", "ca"], ["app", "kv"], ["app", "st"], ["st", "w"], ["w", "kv"], ["w", "dw"]],
+    },
+  },
+  {
+    id: "video", title: "Video Streaming", diff: "hard",
+    pitch: "Upload, transcode and stream video worldwide with adaptive bitrate.",
+    functional: ["Creators upload videos up to 4 GB", "Videos transcoded into 240p to 4K renditions", "Viewers stream with adaptive bitrate", "Search and view counts"],
+    nonfunctional: ["Playback starts in under 2 s worldwide", "Uploads are resumable and never lost", "Reads highly available; processing can be eventually consistent"],
+    scale: ["1B views/day; 500 hours uploaded every minute", "720k hrs/day × ~3 GB per hour of renditions ≈ 2 PB/day", "Egress in Pb/day: must be served from edge caches"],
+    starter: [["c", "client", 0, 1]],
+    rubric: [
+      N(FR, 10, "Load balancer / gateway for the API"),
+      E(CL, FR, 5, "Clients reach the API through it"),
+      N(["blob"], 15, "Object storage for raw uploads and renditions"),
+      E(["queue", "stream"], ["worker"], 15, "Upload events queue transcoding jobs"),
+      C(["worker"], 2, 10, "Pool of transcoding workers"),
+      E(["worker"], ["blob"], 10, "Workers read raw video and write renditions"),
+      N(["cdn"], 15, "CDN serving video segments"),
+      E(CL, ["cdn"], 5, "Viewers stream from the CDN"),
+      E(["cdn"], ["blob"], 5, "CDN pulls segments from origin storage"),
+      N(["sql", "nosql"], 10, "Metadata DB (titles, owners, rendition status)"),
+      E(CP, ["sql", "nosql", "replica"], 5, "API reads and writes metadata"),
+      bonus(N(["search"], 5, "Search index for titles")),
+      bonus(N(["cache"], 5, "Cache for hot video metadata")),
+    ],
+    hints: [
+      "Transcoding a 4 GB file takes minutes. Should the upload request wait for it?",
+      "Serving petabytes a day from one data centre is slow and expensive. What sits near viewers?",
+      "Where do the raw upload and its renditions live? (Not in the database.)",
+    ],
+    followups: ["How do resumable uploads work (multipart upload, pre-signed URLs)?", "How do HLS/DASH segments enable adaptive bitrate?", "How do you count views at 1B/day without hammering the DB?", "How would you prioritise transcoding for popular creators?"],
+    ref: {
+      nodes: [["c", "client", 0, 1], ["lb", "lb", 1, 1], ["app", "app", 2, 1, "Video API", 3], ["ca", "cache", 3, 0, "Metadata cache"], ["db", "sql", 3, 1, "Video metadata"], ["se", "search", 4, 1, "Title search"], ["q", "queue", 2, 2, "Transcode jobs"], ["w", "worker", 3, 2, "Transcoders", 4], ["bl", "blob", 2, 3, "Raw + renditions"], ["cdn", "cdn", 0, 3], ["mo", "monitor", 4, 0]],
+      edges: [["c", "lb"], ["lb", "app"], ["app", "ca"], ["app", "db"], ["app", "se"], ["app", "q"], ["q", "w"], ["w", "bl"], ["w", "db"], ["c", "bl"], ["c", "cdn"], ["cdn", "bl"], ["app", "mo"]],
+    },
+  },
+  {
+    id: "ride", title: "Ride-Hailing Dispatch", diff: "hard",
+    pitch: "Match riders to the nearest driver while 5M drivers stream GPS.",
+    functional: ["Riders request a ride and see nearby drivers", "Drivers send GPS location every 4 s", "Match a rider with the closest available driver", "Trip tracking, fare and payment"],
+    nonfunctional: ["Matching in under 1 s", "Locations may be slightly stale; trips and payments must be strongly consistent", "Scales out region by region"],
+    scale: ["5M active drivers ÷ 4 s ≈ 1.25M location writes/s", "20M trips/day ≈ 230 requests/s, 10× at peak", "Only the latest point per driver is needed for matching"],
+    starter: [["m", "mobile", 0, 1, "Rider & driver apps"]],
+    rubric: [
+      N(FR, 10, "API gateway / load balancer at the edge"),
+      E(CL, FR, 5, "Apps enter through the gateway"),
+      N(["ws"], 10, "Persistent connections for live location updates"),
+      E(FR, ["ws"], 5, "Gateway routes location traffic to the socket servers"),
+      E(["ws", "service", "app"], ["stream", "queue"], 10, "Location stream decouples ingestion from consumers"),
+      N(["geo"], 15, "Geospatial index (geohash / quadtree) of driver positions"),
+      E(["ws", "service", "app", "worker"], ["geo"], 10, "Location updates written to the geo index"),
+      N(["service"], 10, "Dedicated matching service"),
+      E(["service"], ["geo"], 10, "Matching queries nearby drivers"),
+      N(["sql"], 10, "ACID database for trips and payments"),
+      E(["service", "app"], ["sql"], 5, "Trip service writes to it"),
+      bonus(N(["notify"], 5, "Push ride offers to drivers and updates to riders")),
+      bonus(N(["warehouse"], 5, "Trip history in a warehouse for pricing analytics")),
+    ],
+    hints: [
+      "1.25M writes a second of 'driver X is here' is far too many for a relational DB. What stores only the latest point and answers 'who's near me?'",
+      "Drivers send updates constantly. What keeps a cheap, open connection?",
+      "Location can be stale, payments can't. Do they belong in the same store?",
+    ],
+    followups: ["Geohash vs. quadtree vs. H3: how do you search neighbouring cells?", "How do you stop two riders being matched to the same driver (locking)?", "How do you compute surge pricing per area?", "How do you shard by city / region?"],
+    ref: {
+      nodes: [["m", "mobile", 0, 1, "Rider & driver apps"], ["gw", "gateway", 1, 1], ["ws", "ws", 2, 0, "Location sockets", 3], ["st", "stream", 3, 0, "Location stream"], ["w", "worker", 4, 0, "Location updater", 2], ["geo", "geo", 4, 1, "Driver geo index"], ["ms", "service", 3, 1, "Matching service", 2], ["trip", "service", 2, 2, "Trip & payment service", 2], ["db", "sql", 3, 2, "Trips & payments"], ["pn", "notify", 1, 3, "Ride offers"], ["dw", "warehouse", 4, 2, "Trip analytics"]],
+      edges: [["m", "gw"], ["gw", "ws"], ["ws", "st"], ["st", "w"], ["w", "geo"], ["gw", "ms"], ["ms", "geo"], ["gw", "trip"], ["ms", "trip"], ["trip", "db"], ["trip", "pn"], ["db", "dw"]],
+    },
+  },
+  {
+    id: "crawler", title: "Web Crawler", diff: "hard",
+    pitch: "Fetch a billion pages a month politely, without fetching anything twice.",
+    functional: ["Crawl 1B pages per month from seed URLs", "Extract links and enqueue new URLs", "Store raw HTML for indexing", "Respect robots.txt and per-domain politeness"],
+    nonfunctional: ["Never fetch the same URL twice per cycle", "At most 1 request/s per domain", "A crashed worker loses no work"],
+    scale: ["1B pages ÷ 30 days ≈ 400 pages/s; plan for 800", "Avg page 500 KB → 500 TB/month of raw HTML", "~10B URL fingerprints × 8 B ≈ 80 GB for dedup"],
+    starter: [],
+    rubric: [
+      N(["queue", "stream"], 15, "URL frontier queue"),
+      E(["queue", "stream"], ["worker"], 10, "Fetchers pull URLs from the frontier"),
+      C(["worker"], 2, 15, "Fleet of fetcher workers"),
+      E(["worker"], ["dns"], 10, "DNS resolver with caching to avoid lookup bottlenecks"),
+      E(["worker"], ["blob"], 10, "Raw pages stored in object storage"),
+      E(["worker"], ["kv", "cache", "nosql"], 15, "Seen-URL / content-hash store for dedup"),
+      N(["scheduler"], 10, "Scheduler seeds and re-crawls URLs"),
+      E(["scheduler"], ["queue", "stream"], 5, "Scheduler feeds the frontier"),
+      bonus(E(["worker"], ["ratelimiter"], 5, "Per-domain politeness limiter")),
+      bonus(N(["search"], 5, "Indexer feeding a search index")),
+    ],
+    hints: [
+      "Where do discovered-but-not-yet-fetched URLs wait?",
+      "At 800 pages/s, DNS lookups alone can become the bottleneck. What helps?",
+      "The same page is linked from millions of places. How do you know you've already fetched it?",
+    ],
+    followups: ["How do you prioritise the frontier (PageRank, freshness)?", "How do you enforce per-domain politeness with many workers (one queue per host)?", "Bloom filter vs. exact set for seen URLs: trade-offs?", "How do you detect spider traps and near-duplicate pages?"],
+    ref: {
+      nodes: [["sch", "scheduler", 0, 1, "Seed & recrawl"], ["q", "queue", 1, 1, "URL frontier"], ["w", "worker", 2, 1, "Fetchers", 4], ["dns", "dns", 2, 0, "DNS cache"], ["kv", "kv", 3, 0, "Seen URLs"], ["rl", "ratelimiter", 1, 2, "Per-domain politeness"], ["bl", "blob", 3, 1, "Raw HTML"], ["ix", "worker", 3, 2, "Indexer"], ["se", "search", 4, 2, "Search index"]],
+      edges: [["sch", "q"], ["q", "w"], ["w", "dns"], ["w", "kv"], ["w", "rl"], ["w", "bl"], ["bl", "ix"], ["ix", "se"]],
+    },
+  },
+  {
+    id: "filesync", title: "Cloud File Sync", diff: "hard",
+    pitch: "Files that stay in sync across every device, with versions and sharing.",
+    functional: ["Upload and download files up to 10 GB", "Changes sync to all of a user's devices within seconds", "Version history", "Share folders with other users"],
+    nonfunctional: ["Never lose data (11 nines durability)", "Resume interrupted uploads; send only changed blocks", "Metadata strongly consistent"],
+    scale: ["50M DAU, ~2 devices each", "~1 PB of new data per month", "Files split into 4 MB blocks, deduplicated by hash"],
+    starter: [["c", "client", 0, 1, "Desktop & mobile"]],
+    rubric: [
+      N(FR, 10, "Load balancer in front of the services"),
+      E(CL, FR, 5, "Clients enter through the load balancer"),
+      N(["blob"], 15, "Block storage for 4 MB chunks"),
+      E(["client", "mobile", "app", "service"], ["blob"], 5, "Blocks uploaded to object storage (pre-signed URLs)"),
+      N(["sql"], 15, "Strongly consistent metadata DB (files, versions, blocks)"),
+      E(CP, ["sql", "replica"], 5, "Metadata service reads and writes it"),
+      C(CP, 2, 10, "Metadata service scaled out"),
+      E(["client", "mobile", "lb", "gateway"], ["ws", "notify"], 10, "Devices keep a channel open for change notifications"),
+      E(["app", "service"], ["queue", "stream"], 10, "Change events published to a queue"),
+      E(["queue", "stream"], ["ws", "notify", "worker"], 10, "Sync notifier consumes change events"),
+      N(["cache"], 5, "Metadata cache"),
+      bonus(N(["cdn"], 5, "CDN for popular shared files")),
+      bonus(N(["replica"], 3, "Read replicas for metadata reads")),
+    ],
+    hints: [
+      "Re-uploading a 10 GB file after changing one byte is painful. How do you split it up?",
+      "File bytes and file metadata have very different needs. Do they belong in the same store?",
+      "Your laptop saves a file. How does your phone find out within seconds?",
+    ],
+    followups: ["How do you resolve conflicting edits from two offline devices?", "How does block-level dedup work across users, and what are the privacy risks?", "Long polling vs. WebSockets for change notifications?", "How do you garbage-collect blocks no version references any more?"],
+    ref: {
+      nodes: [["c", "client", 0, 1, "Desktop & mobile"], ["lb", "lb", 1, 1], ["ws", "ws", 2, 0, "Sync notifier", 2], ["app", "app", 2, 1, "Metadata service", 3], ["q", "queue", 2, 2, "Change events"], ["ca", "cache", 3, 0, "Metadata cache"], ["db", "sql", 3, 1, "Metadata DB"], ["rr", "replica", 4, 1], ["bl", "blob", 0, 3, "Block storage"], ["cdn", "cdn", 1, 3]],
+      edges: [["c", "lb"], ["lb", "ws"], ["lb", "app"], ["app", "db"], ["db", "rr"], ["app", "ca"], ["app", "q"], ["q", "ws"], ["c", "bl"], ["c", "cdn"], ["cdn", "bl"]],
+    },
+  },
+  {
+    id: "sandbox", title: "Sandbox", diff: "free",
+    pitch: "No prompt and no rubric. Sketch any system and run traffic through it.",
+    functional: ["Design anything you like", "Submit to run the general checks: datastores exposed to clients, unconnected parts"],
+    nonfunctional: [], scale: [], starter: [], rubric: [], hints: [], followups: [], ref: null,
+  },
+];
+
+/* =========================================================
+   State and persistence
+   ========================================================= */
+const W = 172, H = 58, GX = 222, GY = 112, OX = 40, OY = 48;
+const KEY = "design-round-v1";
+let store = { current: "url", saves: {}, best: {} };
+try { const raw = localStorage.getItem(KEY); if (raw) store = Object.assign(store, JSON.parse(raw)); } catch (e) {}
+function persist() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+
+let S;              // save of current challenge: {nodes, edges, hints, t0, revealed, result}
+let sel = null;     // {t: 'node'|'edge', id}
+let history = [];
+let uid = 1;
+const $ = (id) => document.getElementById(id);
+const ch = () => CHALLENGES.find((c) => c.id === store.current) || CHALLENGES[0];
+const nodeById = (id) => S.nodes.find((n) => n.id === id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function layoutToNodes(list) {
+  const keyToId = {};
+  const nodes = list.map(([key, kind, col, row, label, reps]) => {
+    const id = "n" + uid++;
+    keyToId[key] = id;
+    return { id, kind, x: OX + col * GX, y: OY + row * GY, label: label || KINDS[kind].name, replicas: reps || 1 };
+  });
+  return { nodes, keyToId };
+}
+function freshSave(c) {
+  const { nodes } = layoutToNodes(c.starter);
+  return { nodes, edges: [], hints: 0, t0: Date.now(), revealed: false, result: null };
+}
+function loadChallenge(id) {
+  store.current = id;
+  const c = ch();
+  if (!store.saves[id]) store.saves[id] = freshSave(c);
+  S = store.saves[id];
+  // keep uid ahead of existing ids
+  for (const n of S.nodes) uid = Math.max(uid, +n.id.slice(1) + 1);
+  for (const e of S.edges) uid = Math.max(uid, +e.id.slice(1) + 1);
+  sel = null; history = [];
+  persist();
+  renderAll();
+  showTab(S.result ? "score" : "brief");
+  $("scroller").scrollTo(0, 0);
+}
+
+function snapshot() {
+  history.push(JSON.stringify({ nodes: S.nodes, edges: S.edges }));
+  if (history.length > 80) history.shift();
+  $("undoBtn").disabled = false;
+}
+function undo() {
+  const prev = history.pop();
+  if (!prev) return;
+  const st = JSON.parse(prev);
+  S.nodes = st.nodes; S.edges = st.edges; sel = null;
+  changed();
+}
+function changed() {
+  persist();
+  renderBoard();
+  renderInspect();
+  $("undoBtn").disabled = history.length === 0;
+}
+
+/* =========================================================
+   Board rendering
+   ========================================================= */
+function nodeHTML(n) {
+  const k = KINDS[n.kind];
+  const isSel = sel && sel.t === "node" && sel.id === n.id;
+  const custom = n.label && n.label !== k.name;
+  return `<div class="node cat-${k.cat}${n.replicas > 1 ? " multi" : ""}${isSel ? " sel" : ""}" data-id="${n.id}" tabindex="0"
+      style="left:${n.x}px;top:${n.y}px" aria-label="${esc(n.label)} (${esc(k.name)})">
+    ${n.replicas > 1 ? `<span class="reps">×${n.replicas}</span>` : ""}
+    <span class="badge">${k.abbr}</span>
+    <span class="meta"><span class="nl">${esc(n.label)}</span>${custom ? `<span class="nk">${esc(k.name)}</span>` : ""}</span>
+    <span class="port" data-port="${n.id}" title="Drag to connect"></span>
+  </div>`;
+}
+function renderNodes() {
+  $("nodes").innerHTML = S.nodes.map(nodeHTML).join("");
+  $("emptyHint").hidden = S.nodes.length > 1 || S.edges.length > 0;
+}
+function anchor(a, b) {
+  // point on rect a's border along the line from a's centre toward b's centre
+  const ax = a.x + W / 2, ay = a.y + H / 2, bx = b.x + W / 2, by = b.y + H / 2;
+  const dx = bx - ax, dy = by - ay;
+  if (!dx && !dy) return [ax, ay];
+  const t = Math.min(dx ? (W / 2 + 3) / Math.abs(dx) : Infinity, dy ? (H / 2 + 3) / Math.abs(dy) : Infinity);
+  return [ax + dx * t, ay + dy * t];
+}
+function renderWires() {
+  const out = [];
+  for (const e of S.edges) {
+    const a = nodeById(e.from), b = nodeById(e.to);
+    if (!a || !b) continue;
+    const [x1, y1] = anchor(a, b), [x2, y2] = anchor(b, a);
+    const isSel = sel && sel.t === "edge" && sel.id === e.id;
+    const d = `M${x1.toFixed(1)} ${y1.toFixed(1)}L${x2.toFixed(1)} ${y2.toFixed(1)}`;
+    out.push(`<g class="wire${isSel ? " sel" : ""}" data-edge="${e.id}"><path class="hit" d="${d}"/><path class="line" d="${d}" marker-end="url(#${isSel ? "arrSel" : "arr"})"/></g>`);
+  }
+  $("wireLayer").innerHTML = out.join("");
+}
+function renderBoard() { renderNodes(); renderWires(); }
+
+function renderHeader() {
+  const c = ch();
+  $("pickTitle").textContent = c.title;
+  const d = $("pickDiff");
+  d.textContent = c.diff === "free" ? "free" : c.diff;
+  d.className = "diff " + c.diff;
+}
+function renderAll() { renderHeader(); renderBoard(); renderBrief(); renderInspect(); renderScore(); $("undoBtn").disabled = true; }
+
+/* =========================================================
+   Palette
+   ========================================================= */
+function renderPalette() {
+  const p = $("palette");
+  let html = `<div class="search"><input id="pfilter" type="search" placeholder="Filter components" aria-label="Filter components"></div>`;
+  for (const [cat, title] of CATS) {
+    const items = Object.entries(KINDS).filter(([, k]) => k.cat === cat);
+    html += `<div class="pgroup cat-${cat}" data-cat="${cat}"><h3>${title}</h3><div class="plist">` +
+      items.map(([id, k]) => `<button class="pitem cat-${cat}" data-kind="${id}" title="${esc(k.desc)}"><span class="badge">${k.abbr}</span><span class="nm">${k.name}</span></button>`).join("") +
+      `</div></div>`;
+  }
+  p.innerHTML = html;
+  $("pfilter").addEventListener("input", (ev) => {
+    const q = ev.target.value.trim().toLowerCase();
+    p.querySelectorAll(".pitem").forEach((b) => {
+      const k = KINDS[b.dataset.kind];
+      b.hidden = q && !(k.name + " " + k.abbr + " " + k.desc).toLowerCase().includes(q);
+    });
+    p.querySelectorAll(".pgroup").forEach((g) => { g.hidden = !g.querySelector(".pitem:not([hidden])"); });
+  });
+}
+
+function boardPoint(clientX, clientY) {
+  const r = $("board").getBoundingClientRect();
+  return { x: clientX - r.left, y: clientY - r.top };
+}
+function overStage(clientX, clientY) {
+  const r = $("scroller").getBoundingClientRect();
+  return clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom;
+}
+const snap = (v) => Math.round(v / 10) * 10;
+const clampX = (x) => Math.max(10, Math.min(1500 - W - 20, x));
+const clampY = (y) => Math.max(14, Math.min(1000 - H - 14, y));
+
+function addNode(kind, x, y) {
+  snapshot();
+  const n = { id: "n" + uid++, kind, x: clampX(snap(x)), y: clampY(snap(y)), label: KINDS[kind].name, replicas: 1 };
+  S.nodes.push(n);
+  sel = { t: "node", id: n.id };
+  changed();
+  showTab("inspect");
+  return n;
+}
+function freeSpot() {
+  // drop near the visible centre, nudging until it doesn't overlap
+  const sc = $("scroller");
+  let x = sc.scrollLeft + sc.clientWidth / 2 - W / 2, y = sc.scrollTop + sc.clientHeight / 2 - H / 2;
+  for (let i = 0; i < 40; i++) {
+    const hit = S.nodes.some((n) => Math.abs(n.x - x) < W && Math.abs(n.y - y) < H + 10);
+    if (!hit) break;
+    x += 24; y += 70;
+    if (y > sc.scrollTop + sc.clientHeight - H) { y = sc.scrollTop + 30; x += 60; }
+  }
+  return { x, y };
+}
+
+let pdrag = null;
+$("palette").addEventListener("pointerdown", (ev) => {
+  const item = ev.target.closest(".pitem");
+  if (!item || ev.button > 0) return;
+  pdrag = { kind: item.dataset.kind, x0: ev.clientX, y0: ev.clientY, ghost: null, item, pid: ev.pointerId };
+});
+window.addEventListener("pointermove", (ev) => {
+  if (!pdrag || ev.pointerId !== pdrag.pid) return;
+  const dist = Math.hypot(ev.clientX - pdrag.x0, ev.clientY - pdrag.y0);
+  if (!pdrag.ghost && dist > 6) {
+    const k = KINDS[pdrag.kind];
+    const g = document.createElement("div");
+    g.className = `node ghost cat-${k.cat}`;
+    g.innerHTML = `<span class="badge">${k.abbr}</span><span class="meta"><span class="nl">${k.name}</span></span>`;
+    document.body.appendChild(g);
+    pdrag.ghost = g;
+    try { pdrag.item.setPointerCapture(ev.pointerId); } catch (e) {}
+  }
+  if (pdrag.ghost) { pdrag.ghost.style.left = ev.clientX + "px"; pdrag.ghost.style.top = ev.clientY + "px"; }
+});
+function endPaletteDrag(ev, cancelled) {
+  if (!pdrag || ev.pointerId !== pdrag.pid) return;
+  const d = pdrag; pdrag = null;
+  if (d.ghost) {
+    d.ghost.remove();
+    if (!cancelled && overStage(ev.clientX, ev.clientY)) {
+      const p = boardPoint(ev.clientX, ev.clientY);
+      addNode(d.kind, p.x - W / 2, p.y - H / 2);
+    }
+  } else if (!cancelled) {
+    const p = freeSpot();
+    addNode(d.kind, p.x, p.y);
+    toast(`Added ${KINDS[d.kind].name}`);
+  }
+}
+window.addEventListener("pointerup", (ev) => endPaletteDrag(ev, false));
+window.addEventListener("pointercancel", (ev) => endPaletteDrag(ev, true));
+// keyboard: Enter/Space on a palette item adds it
+$("palette").addEventListener("keydown", (ev) => {
+  const item = ev.target.closest(".pitem");
+  if (item && (ev.key === "Enter" || ev.key === " ")) { ev.preventDefault(); const p = freeSpot(); addNode(item.dataset.kind, p.x, p.y); }
+});
+
+/* =========================================================
+   Node dragging, connecting, selecting
+   ========================================================= */
+let ndrag = null, wiring = null;
+$("nodes").addEventListener("pointerdown", (ev) => {
+  if (ev.button > 0) return;
+  const port = ev.target.closest(".port");
+  const el = ev.target.closest(".node");
+  if (!el) return;
+  ev.preventDefault();
+  const n = nodeById(el.dataset.id);
+  if (port) {
+    wiring = { from: n.id, pid: ev.pointerId, target: null };
+    el.setPointerCapture(ev.pointerId);
+    return;
+  }
+  const p = boardPoint(ev.clientX, ev.clientY);
+  ndrag = { id: n.id, dx: p.x - n.x, dy: p.y - n.y, moved: false, el, pid: ev.pointerId, x0: ev.clientX, y0: ev.clientY };
+  el.setPointerCapture(ev.pointerId);
+});
+$("nodes").addEventListener("pointermove", (ev) => {
+  if (wiring && ev.pointerId === wiring.pid) {
+    const a = nodeById(wiring.from);
+    const p = boardPoint(ev.clientX, ev.clientY);
+    const [x1, y1] = anchor(a, { x: p.x - W / 2, y: p.y - H / 2 });
+    $("tempWire").setAttribute("d", `M${x1} ${y1}L${p.x} ${p.y}`);
+    const under = document.elementFromPoint(ev.clientX, ev.clientY);
+    const tEl = under && under.closest(".node");
+    const tid = tEl && tEl.dataset.id !== wiring.from ? tEl.dataset.id : null;
+    if (tid !== wiring.target) {
+      document.querySelectorAll(".node.target").forEach((x) => x.classList.remove("target"));
+      if (tid) tEl.classList.add("target");
+      wiring.target = tid;
+    }
+    autoScroll(ev);
+    return;
+  }
+  if (!ndrag || ev.pointerId !== ndrag.pid) return;
+  if (!ndrag.moved && Math.hypot(ev.clientX - ndrag.x0, ev.clientY - ndrag.y0) < 4) return;
+  if (!ndrag.moved) { snapshot(); ndrag.moved = true; ndrag.el.classList.add("dragging"); }
+  const n = nodeById(ndrag.id);
+  const p = boardPoint(ev.clientX, ev.clientY);
+  n.x = clampX(p.x - ndrag.dx); n.y = clampY(p.y - ndrag.dy);
+  ndrag.el.style.left = n.x + "px"; ndrag.el.style.top = n.y + "px";
+  renderWires();
+  autoScroll(ev);
+});
+function endNodePointer(ev) {
+  if (wiring && ev.pointerId === wiring.pid) {
+    $("tempWire").setAttribute("d", "");
+    document.querySelectorAll(".node.target").forEach((x) => x.classList.remove("target"));
+    const { from, target } = wiring; wiring = null;
+    if (target) connect(from, target);
+    return;
+  }
+  if (!ndrag || ev.pointerId !== ndrag.pid) return;
+  const d = ndrag; ndrag = null;
+  const n = nodeById(d.id);
+  if (d.moved) {
+    n.x = clampX(snap(n.x)); n.y = clampY(snap(n.y));
+    changed();
+  } else {
+    select({ t: "node", id: d.id });
+  }
+}
+$("nodes").addEventListener("pointerup", endNodePointer);
+$("nodes").addEventListener("pointercancel", endNodePointer);
+$("nodes").addEventListener("keydown", (ev) => {
+  const el = ev.target.closest(".node");
+  if (el && ev.key === "Enter") select({ t: "node", id: el.dataset.id });
+});
+
+function autoScroll(ev) {
+  const sc = $("scroller"), r = sc.getBoundingClientRect(), m = 30;
+  if (ev.clientX > r.right - m) sc.scrollLeft += 12; else if (ev.clientX < r.left + m) sc.scrollLeft -= 12;
+  if (ev.clientY > r.bottom - m) sc.scrollTop += 12; else if (ev.clientY < r.top + m) sc.scrollTop -= 12;
+}
+
+function connect(from, to) {
+  if (S.edges.some((e) => (e.from === from && e.to === to) || (e.from === to && e.to === from))) { toast("Those two are already connected"); return; }
+  snapshot();
+  const e = { id: "e" + uid++, from, to };
+  S.edges.push(e);
+  sel = { t: "edge", id: e.id };
+  changed();
+}
+
+$("wireLayer").addEventListener("click", (ev) => {
+  const g = ev.target.closest(".wire");
+  if (g) { ev.stopPropagation(); select({ t: "edge", id: g.dataset.edge }); }
+});
+$("board").addEventListener("click", (ev) => {
+  if (ev.target === $("board") || ev.target === $("wires") || ev.target === $("nodes")) { if (sel) { sel = null; renderBoard(); renderInspect(); } }
+});
+
+function select(s) {
+  sel = s;
+  renderBoard(); renderInspect(); showTab("inspect");
+}
+function removeSelected() {
+  if (!sel) return;
+  snapshot();
+  if (sel.t === "node") {
+    S.nodes = S.nodes.filter((n) => n.id !== sel.id);
+    S.edges = S.edges.filter((e) => e.from !== sel.id && e.to !== sel.id);
+  } else {
+    S.edges = S.edges.filter((e) => e.id !== sel.id);
+  }
+  sel = null;
+  changed();
+}
+
+document.addEventListener("keydown", (ev) => {
+  const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement && document.activeElement.tagName);
+  if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "z" && !typing) { ev.preventDefault(); undo(); return; }
+  if (typing) return;
+  if ((ev.key === "Delete" || ev.key === "Backspace") && sel) { ev.preventDefault(); removeSelected(); }
+  if (ev.key === "Escape") {
+    if (!$("levels").hidden) { closeLevels(); return; }
+    if (sel) { sel = null; renderBoard(); renderInspect(); }
+  }
+});
+
+/* =========================================================
+   Right panel
+   ========================================================= */
+function showTab(name) {
+  for (const t of ["brief", "inspect", "score"]) {
+    const tab = $("tab" + t[0].toUpperCase() + t.slice(1));
+    tab.setAttribute("aria-selected", String(t === name));
+    $("pane" + t[0].toUpperCase() + t.slice(1)).hidden = t !== name;
+  }
+}
+document.querySelector(".tabs").addEventListener("click", (ev) => {
+  const t = ev.target.closest(".tab"); if (t) showTab(t.dataset.tab);
+});
+
+function list(items) { return `<ul>${items.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`; }
+function renderBrief() {
+  const c = ch();
+  let h = `<div class="brief-head"><div class="row"><span class="diff ${c.diff}">${c.diff}</span>${c.diff !== "free" ? `<span class="muted">${c.rubric.filter((r) => !r.bonus).length} rubric checks</span>` : ""}</div>
+    <h2>${esc(c.title)}</h2><p>${esc(c.pitch)}</p></div>`;
+  if (c.functional.length) h += `<div class="sec"><h4>Functional requirements</h4>${list(c.functional)}</div>`;
+  if (c.nonfunctional.length) h += `<div class="sec"><h4>Non-functional requirements</h4>${list(c.nonfunctional)}</div>`;
+  if (c.scale.length) h += `<div class="sec"><h4>Back of the envelope</h4><div class="calc">${c.scale.map((s) => `<div>${esc(s)}</div>`).join("")}</div></div>`;
+  if (c.hints.length) {
+    h += `<div class="sec"><h4>Hints</h4>`;
+    for (let i = 0; i < S.hints; i++) h += `<div class="hint">${esc(c.hints[i])}</div>`;
+    if (S.hints < c.hints.length) h += `<div class="row"><button class="btn small" id="hintBtn">Reveal hint ${S.hints + 1} of ${c.hints.length}</button><span class="muted">costs 5 points</span></div>`;
+    h += `</div>`;
+  }
+  h += `<details class="sec"><summary>How to play</summary><ul>
+    <li>Read the requirements, then build the request path from the client inward.</li>
+    <li>Drag components from the palette, or tap one to drop it in the middle of the board.</li>
+    <li>Drag from a component's right-hand dot onto another component to connect them. Arrow direction is up to you; the rubric only cares that they're linked.</li>
+    <li>Select a component to rename it or set its instance count (×3 means three replicas).</li>
+    <li>Submit to get a scorecard against the rubric. Three stars needs 90 or more.</li>
+  </ul></details>`;
+  $("paneBrief").innerHTML = h;
+  const hb = $("hintBtn");
+  if (hb) hb.onclick = () => { S.hints++; persist(); renderBrief(); };
+}
+
+function renderInspect() {
+  const pane = $("paneInspect");
+  if (!sel) {
+    const counts = {};
+    for (const n of S.nodes) counts[KINDS[n.kind].cat] = (counts[KINDS[n.kind].cat] || 0) + 1;
+    pane.innerHTML = `<div class="sec"><h4>Nothing selected</h4><p class="muted" style="margin:0">Select a component or a connection on the board to edit it.</p></div>
+      <div class="sec"><h4>On the board</h4><div class="calc">
+        <div>${S.nodes.length} components · ${S.edges.length} connections</div>
+        <div>${S.nodes.reduce((a, n) => a + n.replicas, 0)} instances in total</div>
+      </div></div>
+      <div class="sec"><h4>Component guide</h4><p class="muted" style="margin:0">Hover a palette item to read what it's for, or select one on the board.</p></div>`;
+    return;
+  }
+  if (sel.t === "node") {
+    const n = nodeById(sel.id); if (!n) { sel = null; return renderInspect(); }
+    const k = KINDS[n.kind];
+    const conns = S.edges.filter((e) => e.from === n.id || e.to === n.id).map((e) => {
+      const o = nodeById(e.from === n.id ? e.to : e.from);
+      return `<div><span class="muted">${e.from === n.id ? "→" : "←"}</span> ${esc(o.label)}</div>`;
+    });
+    pane.innerHTML = `<div class="ins-head cat-${k.cat}"><span class="badge">${k.abbr}</span><div><h2>${esc(k.name)}</h2></div></div>
+      <p style="margin:0;color:var(--ink-2)">${esc(k.desc)}</p>
+      <div class="field"><label for="nlabel">Label</label><input id="nlabel" value="${esc(n.label)}" maxlength="40"></div>
+      <div class="field"><label>Instances</label><div class="stepper">
+        <button class="btn small" id="repMinus" aria-label="Fewer instances">−</button><output id="repOut">${n.replicas}</output>
+        <button class="btn small" id="repPlus" aria-label="More instances">+</button>
+        <span class="muted">${n.replicas > 1 ? "horizontally scaled" : "single instance"}</span></div></div>
+      <div class="sec"><h4>Connections</h4><div class="conn-list">${conns.length ? conns.join("") : `<span class="muted">None yet. Drag from the dot on its right edge.</span>`}</div></div>
+      <div class="row"><button class="btn small" id="dupBtn">Duplicate</button><button class="btn small danger" id="delBtn">Delete component</button></div>`;
+    const inp = $("nlabel");
+    let labelSnap = false;
+    inp.oninput = () => { if (!labelSnap) { snapshot(); labelSnap = true; } n.label = inp.value || k.name; persist(); renderBoard(); };
+    const rep = (d) => { const v = Math.max(1, Math.min(99, n.replicas + d)); if (v === n.replicas) return; snapshot(); n.replicas = v; changed(); };
+    $("repMinus").onclick = () => rep(-1);
+    $("repPlus").onclick = () => rep(1);
+    $("delBtn").onclick = removeSelected;
+    $("dupBtn").onclick = () => { const m = addNode(n.kind, n.x + 30, n.y + 80); m.label = n.label; m.replicas = n.replicas; changed(); };
+  } else {
+    const e = S.edges.find((x) => x.id === sel.id); if (!e) { sel = null; return renderInspect(); }
+    const a = nodeById(e.from), b = nodeById(e.to);
+    pane.innerHTML = `<div class="ins-head"><h2>Connection</h2></div>
+      <p style="margin:0;font-size:15px"><b>${esc(a.label)}</b> <span class="muted">→</span> <b>${esc(b.label)}</b></p>
+      <p class="muted" style="margin:0">Arrows show who calls whom. Scoring treats a connection the same in both directions.</p>
+      <div class="row"><button class="btn small" id="revBtn">Reverse direction</button><button class="btn small danger" id="delBtn">Delete connection</button></div>`;
+    $("revBtn").onclick = () => { snapshot(); [e.from, e.to] = [e.to, e.from]; changed(); };
+    $("delBtn").onclick = removeSelected;
+  }
+}
+
+/* =========================================================
+   Scoring
+   ========================================================= */
+function evaluate(c, nodes, edges) {
+  const kind = {}; for (const n of nodes) kind[n.id] = n.kind;
+  const hasEdge = (a, b) => edges.some((e) => {
+    const k1 = kind[e.from], k2 = kind[e.to];
+    return (a.includes(k1) && b.includes(k2)) || (a.includes(k2) && b.includes(k1));
+  });
+  const check = (r) => {
+    if (r.t === "node") return nodes.some((n) => r.k.includes(n.kind));
+    if (r.t === "edge") return hasEdge(r.a, r.b);
+    if (r.t === "count") return nodes.filter((n) => r.k.includes(n.kind)).reduce((a, n) => a + n.replicas, 0) >= r.min;
+    return false;
+  };
+  const items = c.rubric.map((r) => ({ label: r.label, pts: r.pts, bonus: !!r.bonus, ok: check(r) }));
+  if (c.rubric.length) items.push({ label: "Monitoring and alerting", pts: 3, bonus: true, ok: nodes.some((n) => n.kind === "monitor") });
+
+  const penalties = [];
+  const exposed = edges.filter((e) => {
+    const k1 = kind[e.from], k2 = kind[e.to];
+    return (CL.includes(k1) && STORES.includes(k2)) || (CL.includes(k2) && STORES.includes(k1));
+  });
+  if (exposed.length) penalties.push({ label: `Client wired straight to a datastore or queue (${exposed.length}×). Put a service in between.`, pts: Math.min(20, 10 * exposed.length) });
+  const linked = new Set(); edges.forEach((e) => { linked.add(e.from); linked.add(e.to); });
+  const lonely = nodes.length > 1 ? nodes.filter((n) => !linked.has(n.id)) : [];
+  if (lonely.length) penalties.push({ label: `Unconnected: ${lonely.slice(0, 4).map((n) => n.label).join(", ")}${lonely.length > 4 ? "…" : ""}`, pts: Math.min(12, 3 * lonely.length) });
+  if (S && S.hints && c.hints.length) penalties.push({ label: `Hints revealed (${S.hints})`, pts: 5 * S.hints });
+
+  const max = items.filter((i) => !i.bonus).reduce((a, i) => a + i.pts, 0);
+  const earned = items.filter((i) => !i.bonus && i.ok).reduce((a, i) => a + i.pts, 0);
+  const extra = items.filter((i) => i.bonus && i.ok).reduce((a, i) => a + i.pts, 0);
+  const pen = penalties.reduce((a, p) => a + p.pts, 0);
+  const score = max ? Math.max(0, Math.min(100, Math.round((earned / max) * 100 + extra - pen))) : null;
+  const stars = score == null ? 0 : score >= 90 ? 3 : score >= 70 ? 2 : score >= 45 ? 1 : 0;
+  return { items, penalties, score, stars };
+}
+
+const STAR = (on) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path class="${on ? "star-on" : "star-off"}" d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z"/></svg>`;
+const VERDICT = ["No hire", "Lean no hire", "Hire", "Strong hire"];
+
+function submit() {
+  const c = ch();
+  const r = evaluate(c, S.nodes, S.edges);
+  r.at = Date.now();
+  r.elapsed = Date.now() - S.t0;
+  S.result = r;
+  if (r.score != null && !S.revealed) store.best[c.id] = Math.max(store.best[c.id] || 0, r.score);
+  persist();
+  renderScore();
+  showTab("score");
+}
+
+function renderScore() {
+  const c = ch(), r = S.result, pane = $("paneScore");
+  $("tabScore").innerHTML = "Scorecard" + (r && r.score != null ? ` <span class="mono" style="color:var(--ink-3)">${r.score}</span>` : "");
+  if (!r) {
+    pane.innerHTML = `<div class="sec"><h4>Not submitted yet</h4><p class="muted" style="margin:0">Build your design, then press <b>Submit design</b>. You'll get a score out of 100, a hiring verdict and the follow-up questions an interviewer would ask.</p></div>
+      <div class="row"><button class="btn primary" id="submitBtn2">Submit design</button></div>`;
+    $("submitBtn2").onclick = submit;
+    return;
+  }
+  const mins = Math.floor(r.elapsed / 60000), secs = Math.floor((r.elapsed % 60000) / 1000);
+  let h = "";
+  if (r.score != null) {
+    h += `<div class="scorecard"><div class="score-num">${r.score}<small>/100</small></div>
+      <div class="stars" aria-label="${r.stars} of 3 stars">${STAR(r.stars >= 1)}${STAR(r.stars >= 2)}${STAR(r.stars >= 3)}</div>
+      <div class="verdict v${r.stars}">${VERDICT[r.stars]}</div></div>
+      <p class="muted" style="margin:0">Submitted after ${mins} min ${secs} s${store.best[c.id] != null ? ` · best ${store.best[c.id]}` : ""}</p>`;
+    if (S.revealed) h += `<div class="note">You've viewed the reference design for this prompt, so this attempt doesn't count toward your best score. Clear the board to start a fresh, scored attempt.</div>`;
+  } else {
+    h += `<div class="sec"><h4>Sandbox check</h4><p style="margin:0">Sandbox designs aren't scored. Here's what the general checks found.</p></div>`;
+  }
+  const core = r.items.filter((i) => !i.bonus), extra = r.items.filter((i) => i.bonus);
+  const li = (i) => `<li class="${i.ok ? "ok" : "miss"}"><span class="ic">${i.ok ? "✓" : "✕"}</span><span class="lbl">${esc(i.label)}</span><span class="pts">${i.ok ? "+" : ""}${i.pts}</span></li>`;
+  if (core.length) h += `<div class="sec"><h4>Rubric · ${core.filter((i) => i.ok).length} of ${core.length}</h4><ul class="checks">${core.map(li).join("")}</ul></div>`;
+  if (extra.length) h += `<div class="sec"><h4>Extra credit</h4><ul class="checks">${extra.map(li).join("")}</ul></div>`;
+  if (r.penalties.length) h += `<div class="sec"><h4>Deductions</h4><ul class="checks">${r.penalties.map((p) => `<li class="pen"><span class="ic">!</span><span class="lbl">${esc(p.label)}</span><span class="pts">−${p.pts}</span></li>`).join("")}</ul></div>`;
+  else if (r.score == null) h += `<div class="sec"><ul class="checks"><li class="ok"><span class="ic">✓</span><span class="lbl">No datastores exposed to clients and nothing left unconnected.</span><span class="pts"></span></li></ul></div>`;
+  if (c.followups.length) h += `<div class="sec"><h4>Interviewer follow-ups</h4>${list(c.followups)}</div>`;
+  const idx = CHALLENGES.indexOf(c), next = CHALLENGES[idx + 1];
+  h += `<div class="row">${c.ref ? `<button class="btn" id="refBtn">Show reference design</button>` : ""}${next ? `<button class="btn primary" id="nextBtn">Next: ${esc(next.title)}</button>` : ""}</div>`;
+  pane.innerHTML = h;
+  if ($("nextBtn")) $("nextBtn").onclick = () => loadChallenge(next.id);
+  if ($("refBtn")) {
+    let armed = false;
+    $("refBtn").onclick = (ev) => {
+      if (!armed) { armed = true; ev.target.textContent = "Replace my board with it?"; ev.target.classList.add("danger"); return; }
+      showReference();
+    };
+  }
+}
+
+function showReference() {
+  const c = ch();
+  snapshot();
+  const { nodes, keyToId } = layoutToNodes(c.ref.nodes);
+  S.nodes = nodes;
+  S.edges = c.ref.edges.map(([a, b]) => ({ id: "e" + uid++, from: keyToId[a], to: keyToId[b] }));
+  S.revealed = true;
+  sel = null;
+  changed();
+  submit();
+  toast("Reference design loaded. Undo brings your board back.");
+}
+
+/* =========================================================
+   Traffic animation
+   ========================================================= */
+let trafficRun = 0;
+function runTraffic() {
+  if (!S.nodes.length) { toast("Add some components first"); return; }
+  const run = ++trafficRun;
+  const adj = {}; S.nodes.forEach((n) => (adj[n.id] = []));
+  S.edges.forEach((e) => { adj[e.from].push(e.to); adj[e.to].push(e.from); });
+  let sources = S.nodes.filter((n) => CL.includes(n.kind));
+  if (!sources.length) sources = S.nodes.filter((n) => n.kind === "scheduler" || n.kind === "service");
+  if (!sources.length) sources = [S.nodes[0]];
+  const depth = {}; const q = [];
+  sources.forEach((s) => { depth[s.id] = 0; q.push(s.id); });
+  while (q.length) { const id = q.shift(); for (const o of adj[id]) if (depth[o] == null) { depth[o] = depth[id] + 1; q.push(o); } }
+  const flows = S.edges.filter((e) => depth[e.from] != null && depth[e.to] != null).map((e) => {
+    const fwd = depth[e.from] <= depth[e.to];
+    const a = nodeById(fwd ? e.from : e.to), b = nodeById(fwd ? e.to : e.from);
+    return { p1: anchor(a, b), p2: anchor(b, a), d: Math.min(depth[e.from], depth[e.to]) };
+  });
+  const cold = S.nodes.filter((n) => depth[n.id] == null);
+  cold.forEach((n) => { const el = document.querySelector(`.node[data-id="${n.id}"]`); el && el.classList.add("cold"); });
+  const layer = $("packetLayer");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const T = reduce ? 1500 : 5200, HOP = 650, start = performance.now();
+  const msg = cold.length ? `${cold.length} component${cold.length > 1 ? "s" : ""} got no traffic` : `Traffic reached all ${S.nodes.length} components`;
+  toast(msg);
+  function frame(now) {
+    if (run !== trafficRun) return;
+    const t = now - start;
+    let html = "";
+    if (!reduce) {
+      for (const f of flows) {
+        const local = t - f.d * HOP * 0.55;
+        if (local < 0) continue;
+        for (let k = 0; k < 3; k++) {
+          const ph = ((local + k * (HOP / 3)) % HOP) / HOP;
+          if (local + k * (HOP / 3) < HOP * 0 || t > T - 300 && ph < 0.2) continue;
+          const x = f.p1[0] + (f.p2[0] - f.p1[0]) * ph, y = f.p1[1] + (f.p2[1] - f.p1[1]) * ph;
+          html += `<circle class="packet" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.6" opacity="${(1 - Math.abs(ph - 0.5)).toFixed(2)}"/>`;
+        }
+      }
+    }
+    layer.innerHTML = html;
+    if (t < T) requestAnimationFrame(frame);
+    else { layer.innerHTML = ""; document.querySelectorAll(".node.cold").forEach((x) => x.classList.remove("cold")); }
+  }
+  requestAnimationFrame(frame);
+}
+
+/* =========================================================
+   Level select, timer, toasts, wiring up
+   ========================================================= */
+function renderLevels() {
+  $("levelGrid").innerHTML = CHALLENGES.map((c) => {
+    const best = store.best[c.id];
+    const st = best == null ? 0 : best >= 90 ? 3 : best >= 70 ? 2 : best >= 45 ? 1 : 0;
+    return `<button class="level${c.id === store.current ? " cur" : ""}" data-id="${c.id}">
+      <span class="top"><b>${esc(c.title)}</b><span class="diff ${c.diff}">${c.diff}</span></span>
+      <p>${esc(c.pitch)}</p>
+      ${c.diff !== "free" ? `<span class="best">${STAR(st >= 1)}${STAR(st >= 2)}${STAR(st >= 3)} ${best == null ? "not attempted" : "best " + best}</span>` : ""}
+    </button>`;
+  }).join("");
+}
+let lastFocus = null;
+function openLevels() { lastFocus = document.activeElement; renderLevels(); $("levels").hidden = false; $("levelGrid").querySelector(".level.cur")?.focus(); }
+function closeLevels() { $("levels").hidden = true; lastFocus && lastFocus.focus && lastFocus.focus(); }
+$("levelBtn").onclick = openLevels;
+$("levelsClose").onclick = closeLevels;
+$("levels").addEventListener("click", (ev) => {
+  if (ev.target === $("levels")) return closeLevels();
+  const b = ev.target.closest(".level");
+  if (b) { closeLevels(); loadChallenge(b.dataset.id); }
+});
+
+let toastTimer;
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => (t.hidden = true), 2600);
+}
+
+let clearArmed = false, clearTimer;
+$("clearBtn").onclick = () => {
+  if (!clearArmed) {
+    clearArmed = true; $("clearBtn").textContent = "Clear board?"; $("clearBtn").classList.add("danger");
+    clearTimer = setTimeout(() => { clearArmed = false; $("clearBtn").textContent = "Clear"; $("clearBtn").classList.remove("danger"); }, 3000);
+    return;
+  }
+  clearTimeout(clearTimer); clearArmed = false; $("clearBtn").textContent = "Clear"; $("clearBtn").classList.remove("danger");
+  snapshot();
+  const f = freshSave(ch());
+  S.nodes = f.nodes; S.edges = []; S.result = null; S.revealed = false; S.hints = 0; S.t0 = Date.now(); sel = null;
+  changed(); renderBrief(); renderScore(); showTab("brief");
+};
+$("undoBtn").onclick = undo;
+$("submitBtn").onclick = submit;
+$("trafficBtn").onclick = runTraffic;
+
+setInterval(() => {
+  if (!S) return;
+  const s = Math.floor((Date.now() - S.t0) / 1000);
+  const m = Math.floor(s / 60);
+  const el = $("timer");
+  el.textContent = m >= 100 ? `${m}m` : `${String(m).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+  el.classList.toggle("over", m >= 45);
+}, 1000);
+
+renderPalette();
+loadChallenge(store.current);
+</script>
+</body>
+</html>
