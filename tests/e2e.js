@@ -313,6 +313,43 @@ async function section(name, fn) { cur = name; try { await fn(); } catch (e) { r
     await p.click('#undoBtn');
   });
 
+  await section('Scorecard: request flow and follow-up answers', async () => {
+    const data = await p.evaluate(() => CHALLENGES.filter(c => c.ref).map(c => ({ id: c.id, f: c.followups.length, a: (ANSWERS[c.id] || []).length, flow: (FLOW[c.id] || '').length })));
+    ok(data.every(d => d.f === d.a && d.a >= 4), 'every follow-up question has an answer (' + data.map(d => d.a).reduce((x, y) => x + y) + ' total)');
+    ok(data.every(d => d.flow > 300), 'every prompt has a request-flow paragraph');
+    for (const { id } of data) {
+      await p.evaluate(i => loadChallenge(i), id); await p.click('#submitBtn');
+      const flow = await p.textContent('#paneScore .flow');
+      ok(flow === await p.evaluate(i => FLOW[i], id) && (await p.textContent('#paneScore')).includes('How a request flows · reference design'), `${id}: flow paragraph shown`);
+      const qa = p.locator('#paneScore .qa');
+      ok(await qa.count() >= 4 && await p.locator('#paneScore .qa[open]').count() === 0, `${id}: answers start collapsed`);
+      ok(await qa.first().locator('p').isHidden(), `${id}: answer text hidden until opened`);
+    }
+    await qa1();
+    async function qa1() {
+      const first = p.locator('#paneScore .qa').first();
+      await first.locator('summary').click();
+      ok(await first.locator('p').isVisible() && (await first.locator('p').textContent()).length > 80, 'clicking a question reveals its answer');
+      await p.click('#qaAll');
+      ok(await p.locator('#paneScore .qa[open]').count() === await p.locator('#paneScore .qa').count(), 'Show all answers opens every answer');
+      ok((await p.textContent('#qaAll')) === 'Hide all answers' && (await p.getAttribute('#qaAll', 'aria-pressed')) === 'true', 'button switches to Hide all answers');
+      await p.click('#qaAll');
+      ok(await p.locator('#paneScore .qa[open]').count() === 0, 'Hide all answers closes them');
+      await p.locator('#paneScore .qa summary').nth(1).click(); await p.locator('#paneScore .qa summary').nth(0).click(); await p.locator('#paneScore .qa summary').nth(2).click(); await p.locator('#paneScore .qa summary').nth(3).click();
+      await p.waitForTimeout(50);
+      ok((await p.textContent('#qaAll')) === 'Hide all answers', 'opening every answer one by one updates the button');
+    }
+    await p.evaluate(() => loadChallenge('sandbox')); await p.click('#clearBtn'); await p.click('#clearBtn');
+    for (const k of ['client', 'lb', 'app', 'cache', 'dns']) await p.locator(`.pitem[data-kind="${k}"]`).click();
+    const ids = await p.evaluate(() => S.nodes.map(n => n.id));
+    await p.evaluate(([a, b, c, d]) => { S.edges.push({ id: 'ex1', from: a, to: b }, { id: 'ex2', from: b, to: c }, { id: 'ex3', from: c, to: d }); changed(); }, ids);
+    await p.click('#submitBtn');
+    const sf = await p.textContent('#paneScore .flow');
+    ok(sf.includes('Web Client → Load Balancer → App Server → Cache') && sf.includes('3 hops'), 'Sandbox traces the path through your own board');
+    ok(sf.includes('1 component is not reachable'), 'Sandbox flow reports unreachable components');
+    ok(await p.locator('#qaAll').count() === 0, 'Sandbox has no follow-up questions');
+  });
+
   await section('Tabs', async () => {
     for (const t of ['Brief', 'Inspect', 'Score', 'Adv']) { await p.click('#tab' + t); ok(await p.locator('#pane' + t).isVisible(), t + ' tab'); }
   });

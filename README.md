@@ -12,7 +12,7 @@ Open `index.html` in any modern browser. There's nothing to install or build, an
 4. Drag from a component's dot onto another component to connect them.
 5. Select a component to rename it or set its instance count (×3 = three replicas).
 6. **Run traffic** to animate requests from the clients and spot parts nothing reaches.
-7. **Submit design** for a score out of 100, stars, a hiring verdict and the follow-up questions an interviewer would ask.
+7. **Submit design** for a score out of 100, stars and a hiring verdict. The scorecard also walks one request end to end through the reference design (in the Sandbox, through your own board) and lists the follow-up questions an interviewer would ask, each with a model answer you can reveal.
 
 Hints are available but cost 5 points each. After submitting you can load the reference design (that attempt then no longer counts toward your best score). Progress and boards are saved in your browser's local storage.
 

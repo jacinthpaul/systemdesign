@@ -315,6 +315,19 @@ details ul { margin-top: 6px; }
 .checks .pen .pts { color: var(--bad); }
 .note { background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; font-size: 13px; }
 
+/* ---------- scorecard extras ---------- */
+.flow { margin: 0; font-size: 13.5px; line-height: 1.6; color: var(--ink-2); background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.qa-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.qa-list { display: flex; flex-direction: column; }
+.qa { border-top: 1px solid var(--line); }
+.qa:last-child { border-bottom: 1px solid var(--line); }
+.qa summary { list-style: none; cursor: pointer; padding: 9px 22px 9px 0; position: relative; font-size: 13.5px; font-weight: 500; }
+.qa summary::-webkit-details-marker { display: none; }
+.qa summary::after { content: "+"; position: absolute; right: 2px; top: 7px; font: 500 16px/1 var(--f-mono); color: var(--ink-3); }
+.qa[open] summary::after { content: "−"; }
+.qa summary:hover { color: var(--accent); }
+.qa p { margin: 0 0 11px; font-size: 13px; line-height: 1.55; color: var(--ink-2); border-left: 3px solid var(--good); padding-left: 10px; }
+
 /* ---------- advanced notes ---------- */
 .adv-gate { display: flex; flex-direction: column; gap: 10px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
 .adv-gate p { margin: 0; color: var(--ink-2); }
@@ -1307,6 +1320,85 @@ const ADV = {
 };
 
 /* =========================================================
+   Scorecard extras: one request end to end, and model answers
+   to the interviewer follow-ups (same order as c.followups)
+   ========================================================= */
+const FLOW = {
+  url: "A visitor opens sho.rt/aZ3kQ9x. DNS resolves to the load balancer, which picks a healthy shortener API instance. The API looks up aZ3kQ9x in the Redis cache; on a hit (over 90% of requests) it answers 302 with the long URL in the Location header within a few milliseconds. On a miss it reads the link store by partition key, checks expires_at, writes the result back to the cache with a TTL, and then redirects. It also emits a click event to the stream, so analytics never sit on the redirect path. Creating a link takes the other route: the API takes the next ID from its leased range, base62-encodes it, writes the row and returns the short URL.",
+  ratelimit: "A client calls POST /v1/orders with its API key. The load balancer forwards it to a rate limiter instance, which looks up the rule for that endpoint in its local copy of the rules store and runs a Lua script on Redis that refills and decrements the key's token bucket in one atomic step. If a token was available, the request continues to one of the API servers with X-RateLimit-Remaining set. If not, the limiter answers 429 with Retry-After and the API servers never see the request. If Redis doesn't answer within a few milliseconds, the limiter falls back to a coarse in-memory limit and lets the request through.",
+  chat: "Alice types a message to Bob. Her app already holds a WebSocket to chat server 3 through the load balancer. It sends {send, conv_id, client_msg_id}; chat server 3 assigns the conversation's next sequence number, writes the message to the message store and acks Alice, so her single tick appears. It then publishes the message on the bus, partitioned by conv_id. The server holding Bob's socket, found through the presence registry in Redis, consumes it and pushes it down Bob's connection; Bob's app acks and the double tick appears. If Bob has no live socket, the notification service consumes the same event and sends a push through APNs or FCM, and Bob's app fetches everything after its last sequence number when it reconnects.",
+  feed: "When Maya opens the app, GET /v1/timeline goes through the load balancer to a timeline API instance. It reads the post IDs in her cached timeline from Redis, merges in recent posts from celebrities she follows (pulled at read time), hydrates the IDs from the post store and returns 20 posts with a cursor. The photos load straight from the CDN, which fetches them from object storage on a miss. When someone she follows posts, the API writes the post, returns 201 and puts a post_created event on the queue; fan-out workers read the author's followers and push the new post ID onto each follower's cached timeline within a few seconds.",
+  notify: "The orders service calls POST /v1/notifications for a shipping update, with an idempotency key. The notification API checks the user's preferences (cached, backed by the preferences DB), drops channels the user has opted out of, puts one message on each remaining channel's queue and returns 202 straight away. A push worker takes the message, checks the idempotency key so a retry can't double-send, renders the template, waits for a token from the provider rate limiter and calls APNs or FCM. The result is written to the notification record and the analytics warehouse; failures retry with backoff and land in a dead-letter queue after the last attempt. Scheduled campaigns enter the same path from the scheduler.",
+  autocomplete: "As a user types \"sys\", the browser waits about 120 ms after the last keystroke and sends GET /v1/suggest?q=sys. Popular prefixes are answered by the CDN or the browser cache. Otherwise the load balancer routes to a suggestion server, which looks up the prefix in its in-memory table (loaded from the latest trie snapshot in the key-value store) and returns the top five completions in a few milliseconds. When the user submits the search, the query is logged to the query stream. Offline, the aggregator counts queries by term, ranks every prefix and publishes a new snapshot, which the servers swap in atomically.",
+  video: "A creator calls POST /v1/videos and gets back a pre-signed multipart upload URL, then uploads the file straight to object storage. When the upload completes, the video API marks the video as processing in the metadata DB and enqueues transcoding jobs. Transcoder workers pull the jobs, read the raw file, write 240p–4K HLS segments and manifests back to storage, and set the status to ready. A viewer's player calls GET /v1/videos/{id} through the load balancer (served mostly from the metadata cache) to get the manifest URL, then fetches the manifest and 4-second segments from the nearest CDN edge, which pulls from storage only on a miss. The player switches bitrate as the viewer's bandwidth changes.",
+  ride: "All the while, each driver's app streams its location every 4 seconds over a socket to the location gateway, which publishes it to the location stream; updater workers write the latest point into the driver geo index. When a rider requests a ride, POST /v1/rides goes through the API gateway to the matching service. It looks up available drivers in the rider's cell and the neighbouring cells, ranks them by ETA, and atomically flips the best driver from available to offered. The offer is pushed to that driver. If they accept within 15 seconds, the trip service records the trip in the trips and payments database and notifies the rider; otherwise the matcher tries the next driver. When the trip ends, the trip service charges the rider with an idempotent payment.",
+  crawler: "The scheduler puts seed URLs and pages due for a recrawl into the URL frontier. A fetcher worker leases the next URL whose host may be fetched now, checks the per-domain politeness limiter and the cached robots.txt, resolves the host through the DNS cache and downloads the page. It stores the raw HTML in object storage and records the URL's fingerprint in the seen-URL store. It then extracts the links, normalises them, drops any already in the seen set and enqueues the rest back into the frontier. Separately, the indexer reads new pages from storage and updates the search index.",
+  filesync: "Priya saves a 40 MB file on her laptop. The client splits it into 4 MB blocks, hashes each one, and calls commit on the metadata service with the block list and the version it started from. The service replies with the hashes it doesn't have yet; the client uploads only those blocks straight to block storage with pre-signed URLs, then commits again. The metadata service writes the new version to the metadata DB in one transaction and appends a change to the namespace journal. The change event reaches the sync notifier, which nudges Priya's phone over its open socket; the phone calls /changes with its cursor, gets the new block list and downloads the blocks it's missing through the CDN.",
+};
+const ANSWERS = {
+  url: [
+    "A counter, leased to each server in ranges, never collides, so writes need no existence check. Shuffle or XOR the bits before encoding so codes aren't sequential and guessable. Hashing the long URL and keeping 7 characters can collide: insert with a condition (only if absent), and on conflict add a salt and hash again. Hashing does have one upside: the same long URL can map to the same code, if deduplication is a requirement.",
+    "302 (or 307). Browsers cache a 301 permanently, so later clicks never reach your servers and analytics undercount. Use 301 only when cutting load matters more than counting clicks.",
+    "The short code. Every redirect is a single-key lookup by code, so hashing the code spreads load evenly and each read touches exactly one partition. Sharding by user would turn the hot path into a scatter-gather across shards.",
+    "Store expires_at and let the store's native TTL delete the row (DynamoDB or Cassandra TTL). The redirect path also checks expiry and returns 410, in case deletion lags. Don't reuse codes: 3.5 trillion is plenty, and recycling a code can send an old printed link to someone else's destination.",
+  ],
+  ratelimit: [
+    "Token bucket for most APIs: O(1) state per key (tokens and last refill time), short bursts up to the bucket size, and a smooth average rate. A sliding window counter if you need a strict cap per window with little memory. Fixed windows let a client send up to 2× the limit across a window boundary; a sliding log is exact but stores a timestamp per request.",
+    "Do the whole check in one Lua script (EVAL): read tokens and timestamp, refill, decrement, write back and set the TTL. Redis runs a script atomically, so concurrent requests can't both pass. For a fixed window, INCR followed by EXPIRE on the first increment is enough because INCR itself is atomic.",
+    "Fail open for most APIs, because a limiter outage shouldn't take the product down. Keep a coarse local limit on each instance so a single abusive client is still capped. Fail closed only where overload is dangerous, such as login attempts or very expensive endpoints. Redis replication is asynchronous, so a failover may reset a few counters; that's acceptable.",
+    "Give each region its own share of the quota (limit ÷ regions, or weighted by traffic), enforce it locally, and sync usage periodically to rebalance. An exact global limit would need a cross-region round trip on every request, which costs far too much latency.",
+  ],
+  chat: [
+    "The server assigns a sequence number per conversation that only goes up, for example INCR conv:{id}:seq in Redis, or by whichever node owns the conversation's partition. Clients sort by it and spot gaps: receiving 41 after 39 means fetching 40. Never rely on client clocks.",
+    "Store last_read_seq for each (user, conversation). Unread count = the conversation's latest seq − last_read_seq. When one device reads, it updates last_read_seq and the server pushes that to the user's other devices, so the badge clears everywhere.",
+    "The client remembers the last seq it saw in each conversation. On reconnect it asks for everything after that seq, and deduplicates by msg_id. Because a message is stored before it is acknowledged, nothing that was acked can be lost.",
+    "Store a group message once. Deliver by pushing to members who are online (cheap for 500 members); for offline members just update unread state and send a push notification. Very large channels with thousands of members switch to fan-out on read: members pull new messages when they open the channel.",
+  ],
+  feed: [
+    "Use a hybrid. Fan out on write for normal accounts, so a timeline read is one cache lookup. For accounts above roughly 10k followers, skip the fan-out and merge their recent posts into the follower's timeline at read time. That avoids 50M writes per celebrity post while keeping reads fast.",
+    "Cursor-based, using the last post_id (a time-sortable Snowflake ID): GET /timeline?cursor=<id> returns posts older than that ID. Offsets shift as new posts arrive, causing duplicates or gaps, and get slower the deeper you page.",
+    "Keep timelines only for users active in the last few days, capped at about 800 IDs, with the TTL refreshed on every read. On a miss, rebuild: fetch the user's followees, read their recent posts, merge them and write the cache. That's slow (hundreds of milliseconds) but rare.",
+    "Keep generating candidates the same way (fanned-out IDs plus pulled celebrity posts), then score them with a ranking model on features like affinity with the author, recency, engagement and media type, and return the top N. Cache the ranked page briefly, and fall back to chronological order if the ranker is down.",
+  ],
+  notify: [
+    "Callers send an idempotency key. The API stores it under a unique constraint and returns the existing notification if the same key arrives again. Workers check the key and status before calling the provider and mark the message sent afterwards, so a redelivered message is skipped.",
+    "After N attempts with exponential backoff, the message moves to a dead-letter queue along with its last error. Alert on the DLQ's size, find and fix the cause (an expired token, a template bug), then replay the messages from the DLQ.",
+    "Store each user's time zone and quiet window. At send time, if it falls inside quiet hours and the message isn't urgent (one-time passcodes and security alerts bypass this), hand it back to the scheduler for the end of the window instead of sending it.",
+    "Providers report delivery and bounces to callback webhooks. Opens and clicks come from tracking pixels and redirect links in email, and from app events for push. Write them to the notification record and stream them to the warehouse for funnel and provider dashboards.",
+  ],
+  autocomplete: [
+    "During the offline build, compute each node's top 5 bottom-up: merge its children's top-5 lists and keep the best 5, then store that list on the node. A query walks down the prefix (about 20 steps at most) and returns the stored list, without walking any subtree.",
+    "By prefix range, with ranges sized by traffic rather than by letter (prefixes starting with s or c are huge, x or z tiny). Each shard holds its own subtree. Very hot short prefixes are replicated or served from cache.",
+    "Run a streaming job over the query log that counts queries over the last 15–60 minutes and keeps a small table of prefixes whose rate has jumped. At serve time, merge those results with the daily snapshot, with a boost.",
+    "Wait about 100–150 ms after the last keystroke, cancel any in-flight request when a new one starts, and cache responses on the client by prefix. Many apps also wait for the second character before asking at all.",
+  ],
+  video: [
+    "The API starts a multipart upload in object storage and returns a pre-signed URL for each part (say 8 MB). The client uploads parts in parallel and retries only the parts that fail; at the end the API completes the multipart upload. If the app restarts, it asks which parts already exist and carries on from there.",
+    "Each rendition is cut into short segments listed in a manifest, and a master playlist lists every rendition with its bitrate. The player measures throughput and buffer level and picks the rendition for each next segment, so quality can change every few seconds without stopping playback.",
+    "Players send batched view beacons to a stream. A stream processor deduplicates them (user, video, session) and aggregates counts per video per minute into a counter store. The page shows an approximate real-time count, and exact totals are reconciled in a batch job.",
+    "Use priority queues: popular creators and short videos go to a high-priority queue with reserved worker capacity. Transcode a fast low-resolution rendition first so the video is watchable within a minute, then fill in higher resolutions and newer codecs.",
+  ],
+  ride: [
+    "Geohash encodes latitude and longitude as a string where a shared prefix means nearby; a search checks the rider's cell plus its 8 neighbours. Quadtrees adapt cell size to density (small cells downtown) but are harder to distribute. H3 hexagons have equal distances to all neighbours, which makes ring searches and surge zones cleaner. Any of them works; explain your choice.",
+    "Compare-and-set on the driver's status: UPDATE drivers SET status = 'offered', ride_id = X WHERE id = D AND status = 'available' (or a Redis SET NX with a TTL). Only one request can succeed. The offer expires after 15 seconds, releasing the driver if they don't accept.",
+    "For each cell, every minute compare demand (ride requests) with supply (available drivers) from the request and location streams. Map the ratio to a multiplier with smoothing and a cap, and store it where the fare estimator can read it quickly.",
+    "Partition by city or region: each city's drivers, riders, geo index and trips live in one regional cell, because matching is local. A small global service maps a location to its city's shard, and the rare trip across a boundary is owned by the city where it starts.",
+  ],
+  crawler: [
+    "Use front queues by priority. Score each URL on importance (PageRank, domain authority, inbound links) and freshness (how often the page has changed before), assign it to one of N priority queues, and have the selector favour the higher ones.",
+    "Use back queues: one FIFO per host, each owned by a single worker, plus a heap of each host's next allowed fetch time. A worker fetches only once a host's time has passed, then sets it to now plus the crawl delay. No locks are needed.",
+    "A Bloom filter for 10 billion URLs at a 1% false-positive rate needs about 12 GB and fits in memory; a false positive only means a few new pages are wrongly skipped. An exact set of 8-byte fingerprints is about 80 GB and never wrong, but needs disk or a cluster. A common answer is both: the Bloom filter first, the key-value store to confirm.",
+    "Cap depth and pages per host, limit URL length and query parameters, detect repeating path segments, and normalise URLs (sort parameters, strip session IDs). For near-duplicate content, compute a SimHash of each page and skip pages within a small distance of one already seen.",
+  ],
+  filesync: [
+    "Each commit carries the version it was based on. The first device to commit wins; the second gets a conflict, saves its edits as \"file (Priya's conflicted copy)\", and syncs the winning version as the main file. The user merges by hand, and nothing is silently lost.",
+    "Blocks are addressed by their hash, so if a block already exists the upload is skipped and the new version just points at it. Across users this saves storage but leaks information: someone can test whether anyone has a particular file by watching whether the upload is skipped. So deduplicate per user or per organisation.",
+    "With long polling, the client holds an HTTP request open and the server answers when something changes or after about 60 seconds; it's simple and works through proxies but reconnects often. WebSockets stay open and cost less per event, but make the servers stateful. Either way the message is only a nudge; the client pulls changes by cursor, so a lost nudge never loses data.",
+    "Keep a reference count on each block. When a version expires past the retention period, decrement the counts of its blocks. Blocks that reach zero are marked, then deleted after a grace period long enough to cover commits still in flight.",
+  ],
+};
+
+/* =========================================================
    State and persistence
    ========================================================= */
 const W = 172, H = 58, GX = 222, GY = 112, OX = 40, OY = 48;
@@ -2093,12 +2185,24 @@ function renderScore() {
   if (extra.length) h += `<div class="sec"><h4>Extra credit</h4><ul class="checks">${extra.map(li).join("")}</ul></div>`;
   if (r.penalties.length) h += `<div class="sec"><h4>Deductions</h4><ul class="checks">${r.penalties.map((p) => `<li class="pen"><span class="ic">!</span><span class="lbl">${esc(p.label)}</span><span class="pts">−${p.pts}</span></li>`).join("")}</ul></div>`;
   else if (r.score == null) h += `<div class="sec"><ul class="checks"><li class="ok"><span class="ic">✓</span><span class="lbl">No datastores exposed to clients and nothing left unconnected.</span><span class="pts"></span></li></ul></div>`;
-  if (c.followups.length) h += `<div class="sec"><h4>Interviewer follow-ups</h4>${list(c.followups)}</div>`;
+  const flow = FLOW[c.id] || boardFlow();
+  if (flow) h += `<div class="sec"><h4>How a request flows${FLOW[c.id] ? " · reference design" : " · your board"}</h4><p class="flow">${esc(flow)}</p></div>`;
+  if (c.followups.length) {
+    const ans = ANSWERS[c.id] || [];
+    h += `<div class="sec"><div class="qa-head"><h4>Interviewer follow-ups</h4><button class="btn small" id="qaAll" aria-pressed="false">Show all answers</button></div>
+      <p class="muted" style="margin:0">Try answering out loud first, then open a question for a model answer.</p>
+      <div class="qa-list">${c.followups.map((q, i) => `<details class="qa"><summary>${esc(q)}</summary>${ans[i] ? `<p>${esc(ans[i])}</p>` : ""}</details>`).join("")}</div></div>`;
+  }
   const idx = CHALLENGES.indexOf(c), next = CHALLENGES[idx + 1];
   if (ADV[c.id]) h += `<button class="adv-link" id="advLink2"><b>Go deeper</b><span>APIs, data model, trade-offs and failure modes for this prompt</span></button>`;
   h += `<div class="row">${c.ref ? `<button class="btn" id="refBtn">Show reference design</button>` : ""}${next ? `<button class="btn primary" id="nextBtn">Next: ${esc(next.title)}</button>` : ""}</div>`;
   pane.innerHTML = h;
   if ($("advLink2")) $("advLink2").onclick = () => openPanel("adv");
+  if ($("qaAll")) {
+    const sync = () => { const btn = $("qaAll"); if (!btn) return; const all = [...pane.querySelectorAll(".qa")]; const open = all.every((d) => d.open); btn.textContent = open ? "Hide all answers" : "Show all answers"; btn.setAttribute("aria-pressed", String(open)); };
+    $("qaAll").onclick = () => { const all = [...pane.querySelectorAll(".qa")]; const open = !all.every((d) => d.open); all.forEach((d) => (d.open = open)); sync(); };
+    pane.querySelectorAll(".qa").forEach((d) => d.addEventListener("toggle", sync));
+  }
   if ($("nextBtn")) $("nextBtn").onclick = () => loadChallenge(next.id);
   if ($("refBtn")) {
     let armed = false;
@@ -2107,6 +2211,21 @@ function renderScore() {
       showReference();
     };
   }
+}
+
+// Sandbox: describe the longest path a request takes through the user's own board.
+function boardFlow() {
+  if (!S.nodes.length) return "";
+  const adj = {}; S.nodes.forEach((n) => (adj[n.id] = []));
+  S.edges.forEach((e) => { adj[e.from].push(e.to); adj[e.to].push(e.from); });
+  const src = S.nodes.find((n) => CL.includes(n.kind)) || S.nodes.find((n) => n.kind === "scheduler" || n.kind === "service") || S.nodes[0];
+  const prev = { [src.id]: null }, q = [src.id]; let last = src.id;
+  while (q.length) { const id = q.shift(); last = id; for (const o of adj[id]) if (!(o in prev)) { prev[o] = id; q.push(o); } }
+  const path = []; for (let id = last; id; id = prev[id]) path.unshift(nodeById(id).label);
+  const unreached = S.nodes.length - Object.keys(prev).length;
+  if (path.length < 2) return `Nothing is connected to ${src.label} yet. Connect components to see how a request travels through them.`;
+  return `Starting at ${src.label}, the deepest path a request takes on your board is ${path.join(" → ")} (${path.length - 1} hop${path.length > 2 ? "s" : ""}). ` +
+    (unreached ? `${unreached} component${unreached > 1 ? "s are" : " is"} not reachable from ${src.label}.` : `Every component on the board is reachable from ${src.label}.`);
 }
 
 function showReference() {
