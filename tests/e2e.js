@@ -77,7 +77,7 @@ async function section(name, fn) { cur = name; try { await fn(); } catch (e) { r
     const cb = await nodeEl(cache.id).boundingBox();
     await p.mouse.move(cb.x + 50, cb.y + 30); await p.mouse.down(); await p.mouse.move(cb.x - 2000, cb.y - 2000, { steps: 4 }); await p.mouse.up();
     const c2 = (await st()).nodes.find(n => n.id === cache.id);
-    ok(c2.x >= 10 && c2.y >= 14, 'position clamped inside board');
+    ok(c2.x >= 0 && c2.y >= 10, 'position clamped inside board');
     await p.evaluate(id => { const n = S.nodes.find(n => n.id === id); n.x = 560; n.y = 100; changed(); }, cache.id);
   });
 
@@ -336,28 +336,161 @@ async function section(name, fn) { cur = name; try { await fn(); } catch (e) { r
     for (let i = 1; i <= steps; i++) await touch('touchMove', x1 + (x2 - x1) * i / steps, y1 + (y2 - y1) * i / steps);
     await touch('touchEnd');
   }
+  const view = (pg) => pg.evaluate(() => ({ ...view }));
+  const sel2 = (pg) => pg.evaluate(() => sel);
   await section('Phone (touch)', async () => {
     ok(await mp.evaluate(() => document.documentElement.scrollWidth) <= 390, 'no horizontal page scroll');
+    ok((await mp.locator('.bar').boundingBox()).height < 70, 'header fits on one row');
+    ok(await mp.locator('#dock').isVisible() && await mp.locator('[data-dock="palette"]').isVisible(), 'bottom nav with Add button');
+    ok(await mp.locator('#palette').evaluate(e => getComputedStyle(e).visibility) === 'hidden', 'palette sheet closed initially');
+    ok(await mp.locator('.panel').evaluate(e => getComputedStyle(e).visibility) === 'hidden', 'panel sheet closed initially');
+    const stageBox = await mp.locator('#scroller').boundingBox();
+    ok(stageBox.width === 390 && stageBox.height > 600, `board fills the screen (${stageBox.width}×${Math.round(stageBox.height)})`);
     ok(await mp.locator('.port').first().evaluate(e => getComputedStyle(e).opacity) === '1', 'connect handles visible on touch');
-    await mp.locator('.pitem[data-kind="lb"]').tap();
+    await mp.tap('[data-dock="palette"]'); await mp.waitForTimeout(350);
+    ok(await mp.locator('#palette').evaluate(e => getComputedStyle(e).visibility) === 'visible', 'Add opens the component sheet');
+    ok(await mp.evaluate(() => document.querySelector('#palette').scrollWidth <= document.querySelector('#palette').clientWidth + 1), 'component sheet has no sideways overflow');
+    await mp.locator('.pitem[data-kind="lb"]').tap(); await mp.waitForTimeout(350);
     let n = await mp.evaluate(() => S.nodes.length); ok(n === 2, 'tap adds component');
-    await mp.locator(".pitem[data-kind=\"app\"]").scrollIntoViewIfNeeded(); await mp.waitForTimeout(200); const it = await mp.locator(".pitem[data-kind=\"app\"]").boundingBox(); const sc = await mp.locator('#scroller').boundingBox();
-    await touchDrag(it.x + it.width / 2, it.y + 15, sc.x + 220, sc.y + 330);
-    n = await mp.evaluate(() => S.nodes.map(x => x.kind)); ok(n.length === 3 && n[2] === 'app', 'touch drag from palette adds component');
+    ok(await mp.locator('#palette').evaluate(e => getComputedStyle(e).visibility) === 'hidden', 'sheet closes after adding');
+    const lbBox = await mp.locator('.node').nth(1).boundingBox();
+    ok(lbBox.x >= 0 && lbBox.x + lbBox.width <= 390 && lbBox.y > stageBox.y, 'new component lands in view');
+    ok(await mp.locator('#selbar').isVisible(), 'selection bar appears for the new component');
+    await mp.tap('[data-dock="palette"]'); await mp.waitForTimeout(350);
+    const it = await mp.locator('.pitem[data-kind="app"]').boundingBox();
+    await touchDrag(it.x + it.width / 2, it.y + 15, 200, stageBox.y + 520, 16); await mp.waitForTimeout(300);
+    n = await mp.evaluate(() => S.nodes.map(x => x.kind)); ok(n.length === 3 && n[2] === 'app', 'touch drag from the sheet onto the board adds component');
     const ids = await mp.evaluate(() => S.nodes.map(x => x.id));
     const pb = await mp.locator(`.node[data-id="${ids[0]}"] .port`).boundingBox(); const tb = await mp.locator(`.node[data-id="${ids[1]}"]`).boundingBox();
     await touchDrag(pb.x + 9, pb.y + 9, tb.x + 50, tb.y + 30);
     ok(await mp.evaluate(() => S.edges.length) === 1, 'touch drag from handle connects');
     const nb = await mp.locator(`.node[data-id="${ids[2]}"]`).boundingBox(); const y0 = await mp.evaluate(i => S.nodes.find(n => n.id === i).y, ids[2]);
-    await touchDrag(nb.x + 40, nb.y + 30, nb.x + 40, nb.y + 120);
-    ok(await mp.evaluate(i => S.nodes.find(n => n.id === i).y, ids[2]) > y0 + 50, 'touch drag moves node');
-    await mp.locator(`.node[data-id="${ids[2]}"]`).tap(); ok(await mp.evaluate(() => sel && sel.t === 'node'), 'tap selects node');
-    await mp.click('#submitBtn'); ok(await mp.evaluate(() => S.result && S.result.score != null), 'submit works on phone');
-    await mp.click('#tabAdv'); ok(await mp.locator('#paneAdv .ep').count() > 0, 'Advanced notes readable on phone');
+    await touchDrag(nb.x + 40, nb.y + 30, nb.x + 40, nb.y - 60);
+    ok(await mp.evaluate(i => S.nodes.find(n => n.id === i).y, ids[2]) < y0 - 40, 'touch drag moves node');
+    await mp.locator(`.node[data-id="${ids[2]}"]`).tap(); ok((await sel2(mp)).t === 'node', 'tap selects node');
+    await mp.tap('#selbar [data-act="plus"]'); await mp.tap('#selbar [data-act="plus"]');
+    ok(await mp.evaluate(i => S.nodes.find(n => n.id === i).replicas, ids[2]) === 3 && (await mp.textContent('#selbar')).includes('×3'), 'selection bar + sets instances to 3');
+    await mp.tap('#selbar [data-act="dup"]'); ok(await mp.evaluate(() => S.nodes.length) === 4, 'selection bar copies');
+    await mp.tap('#selbar [data-act="del"]'); ok(await mp.evaluate(() => S.nodes.length) === 3, 'selection bar deletes');
+    await mp.locator(`.node[data-id="${ids[2]}"]`).tap(); await mp.tap('#selbar [data-act="details"]'); await mp.waitForTimeout(350);
+    ok(await mp.locator('#paneInspect').isVisible() && await mp.locator('.panel').evaluate(e => getComputedStyle(e).visibility) === 'visible', 'selection bar opens Inspect sheet');
+    ok(await mp.locator('#selbar').isHidden(), 'selection bar hides under the sheet');
+    await mp.tap('#scrim', { position: { x: 200, y: 40 } }); await mp.waitForTimeout(350);
+    ok(await mp.locator('.panel').evaluate(e => getComputedStyle(e).visibility) === 'hidden', 'tapping the dimmed board closes the sheet');
+    // one-finger pan on empty space
+    let v0 = await view(mp);
+    await touchDrag(300, stageBox.y + 150, 220, stageBox.y + 100, 8);
+    let v1 = await view(mp); ok(Math.abs(v1.x - v0.x + 80) < 3 && Math.abs(v1.y - v0.y + 50) < 3, 'one-finger drag on empty space pans');
+    ok((await sel2(mp)) !== null, 'panning does not clear the selection');
+    // pinch zoom
+    v0 = await view(mp);
+    const cy = stageBox.y + 300;
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 150, y: cy, id: 1 }, { x: 250, y: cy, id: 2 }] });
+    for (let i = 1; i <= 8; i++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 150 - i * 6, y: cy, id: 1 }, { x: 250 + i * 6, y: cy, id: 2 }] });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    v1 = await view(mp); ok(v1.z > v0.z * 1.7, `pinch zooms in (${v0.z.toFixed(2)} → ${v1.z.toFixed(2)})`);
+    await mp.tap('#fitBtn'); const nodesIn = await mp.evaluate(() => { const r = document.getElementById('scroller').getBoundingClientRect(); return [...document.querySelectorAll('.node')].every(n => { const b = n.getBoundingClientRect(); return b.left >= r.left - 1 && b.right <= r.right + 1 && b.top >= r.top - 1 && b.bottom <= r.bottom + 1; }); });
+    ok(nodesIn, 'Fit brings every component into view');
+    // header menu
+    ok(await mp.locator('#clearBtn').isHidden(), 'Clear and Run traffic tucked into the ⋯ menu');
+    await mp.tap('#moreBtn'); ok(await mp.locator('#trafficBtn').isVisible() && await mp.locator('#timer').isVisible(), '⋯ opens the menu');
+    await mp.tap('#trafficBtn'); await mp.waitForTimeout(200); ok(await mp.locator('#trafficBtn').isHidden(), 'menu closes after choosing');
+    await mp.tap('#moreBtn'); await mp.tap('#scroller', { position: { x: 100, y: 300 } }); ok(await mp.locator('#trafficBtn').isHidden(), 'tapping outside closes the menu');
+    await mp.tap('#submitBtn'); await mp.waitForTimeout(350);
+    ok(await mp.evaluate(() => S.result && S.result.score != null) && await mp.locator('#paneScore').isVisible(), 'Submit opens the Scorecard sheet');
+    ok(await mp.locator('#dockScore').isVisible(), 'score badge on the Score button');
+    ok(await mp.locator('[data-dock="score"]').getAttribute('aria-pressed') === 'true', 'Score button shows as active');
+    await mp.tap('[data-dock="score"]'); await mp.waitForTimeout(350);
+    ok(await mp.locator('.panel').evaluate(e => getComputedStyle(e).visibility) === 'hidden', 'tapping the active button closes the sheet');
+    await mp.tap('[data-dock="adv"]'); await mp.waitForTimeout(350);
+    ok(await mp.locator('#paneAdv .ep').count() > 0, 'Advanced notes readable on phone');
     ok(await mp.evaluate(() => document.documentElement.scrollWidth) <= 390, 'still no horizontal scroll with notes open');
     await mp.click('#advExpand'); ok(await mp.evaluate(() => getComputedStyle(document.querySelector('#advWideBody .adv-grid')).gridTemplateColumns.split(' ').length) === 1, 'wide view stacks to one column on phone');
     await mp.screenshot({ path: shot('design-round-phone-adv.png') }); await mp.click('#advWideClose');
+    await mp.keyboard.press('Escape'); await mp.waitForTimeout(300);
+    ok(await mp.locator('.panel').evaluate(e => getComputedStyle(e).visibility) === 'hidden', 'Escape closes the sheet');
     await mp.screenshot({ path: shot('design-round-phone.png') });
+  });
+
+  // ---------- tablet ----------
+  for (const [w, h] of [[1024, 768], [768, 1024]]) {
+    const t = await b.newContext({ viewport: { width: w, height: h }, hasTouch: true });
+    const tp = await t.newPage(); tp.on('pageerror', e => errs.push('tablet: ' + e.message));
+    await tp.goto(URL); await tp.waitForTimeout(300);
+    await section(`Tablet ${w}×${h}`, async () => {
+      ok(await tp.evaluate(() => document.documentElement.scrollWidth) <= w, 'no horizontal page scroll');
+      ok((await tp.locator('.bar').boundingBox()).height < 70, 'header fits on one row');
+      const pal = await tp.locator('#palette').boundingBox();
+      ok(pal && pal.width <= 100 && pal.x === 0, `components shown as a slim rail (${pal && pal.width}px)`);
+      ok(await tp.locator('[data-dock="palette"]').isHidden() && await tp.locator('[data-dock="brief"]').isVisible(), 'bottom nav without Add (rail is visible)');
+      ok(await tp.locator('.panel').evaluate(e => getComputedStyle(e).visibility) === 'hidden', 'panel drawer closed so the board gets the space');
+      ok(await tp.locator('#clearBtn').isVisible() && await tp.locator('#moreBtn').isHidden(), 'all header actions visible, no ⋯ menu');
+      ok(await tp.locator('#togglePalette').isHidden(), 'desktop-only collapse buttons hidden');
+      await tp.locator('.pitem[data-kind="lb"]').tap(); ok(await tp.evaluate(() => S.nodes.length) === 2, 'tap on rail adds component');
+      ok(await tp.locator('#selbar').isVisible(), 'selection bar shown');
+      await tp.tap('#selbar [data-act="details"]'); await tp.waitForTimeout(300);
+      const pr = await tp.locator('.panel').boundingBox();
+      ok(await tp.locator('#paneInspect').isVisible() && Math.round(pr.x + pr.width) === w, 'Details opens the right-hand drawer on Inspect');
+      await tp.fill('#nlabel', 'Edge LB'); ok((await tp.textContent('.node.sel')).includes('Edge LB'), 'rename from the drawer updates the board');
+      await tp.tap('#panelClose'); await tp.waitForTimeout(300);
+      ok(await tp.locator('.panel').evaluate(e => getComputedStyle(e).visibility) === 'hidden', 'Close hides the drawer');
+      await tp.tap('[data-dock="brief"]'); await tp.waitForTimeout(300); ok(await tp.locator('#paneBrief').isVisible(), 'Brief opens from bottom nav');
+      await tp.tap('[data-dock="brief"]'); await tp.waitForTimeout(300);
+      ok(await tp.locator('.panel').evaluate(e => getComputedStyle(e).visibility) === 'hidden', 'tapping it again closes');
+      await tp.tap('#submitBtn'); await tp.waitForTimeout(300); ok(await tp.locator('#paneScore').isVisible(), 'Submit opens the Scorecard drawer');
+      await tp.screenshot({ path: shot(`design-round-tablet-${w}.png`) });
+    });
+    await t.close();
+  }
+
+  // ---------- desktop extras ----------
+  await section('Desktop pan, zoom and panels', async () => {
+    await p.emulateMedia({ colorScheme: 'light' }); await p.evaluate(() => document.documentElement.removeAttribute('data-theme'));
+    await p.evaluate(() => loadChallenge('url')); await p.waitForTimeout(100);
+    ok(await p.locator('#dock').isHidden() && await p.locator('#selbar').isHidden(), 'no bottom nav or selection bar on desktop');
+    const sb = await p.locator('#scroller').boundingBox();
+    let v0 = await view(p);
+    await p.click('#zoomIn'); let v1 = await view(p); ok(Math.abs(v1.z - v0.z * 1.2) < 1e-6, 'zoom in button');
+    ok((await p.textContent('#zoomPct')) === Math.round(v1.z * 100) + '%', 'zoom % label updates');
+    await p.click('#zoomOut'); ok(Math.abs((await view(p)).z - v0.z) < 1e-6, 'zoom out button');
+    await p.mouse.click(sb.x + 300, sb.y + 300);
+    await p.keyboard.press('='); ok((await view(p)).z > v0.z, '+ key zooms in'); await p.keyboard.press('-'); await p.keyboard.press('-'); ok((await view(p)).z < v0.z, '− key zooms out');
+    for (let i = 0; i < 20 && !(await p.locator('#zoomOut').isDisabled()); i++) await p.click('#zoomOut');
+    ok(Math.abs((await view(p)).z - 0.3) < 1e-6 && await p.locator('#zoomOut').isDisabled(), 'zoom stops at 30%');
+    await p.keyboard.press('0');
+    // ctrl+wheel keeps the point under the cursor fixed
+    const cx = sb.x + 400, cy = sb.y + 300;
+    v0 = await view(p); const before = await p.evaluate(([x, y]) => boardPoint(x, y), [cx, cy]);
+    await p.mouse.move(cx, cy); await p.keyboard.down('Control'); await p.mouse.wheel(0, -100); await p.keyboard.up('Control'); await p.waitForTimeout(100);
+    const after = await p.evaluate(([x, y]) => boardPoint(x, y), [cx, cy]); v1 = await view(p);
+    ok(v1.z > v0.z && Math.abs(before.x - after.x) < 0.5 && Math.abs(before.y - after.y) < 0.5, 'Ctrl + scroll zooms around the cursor');
+    v0 = await view(p); await p.mouse.wheel(40, 120); await p.waitForTimeout(100); v1 = await view(p);
+    ok(Math.abs(v1.x - (v0.x - 40)) < 1 && Math.abs(v1.y - (v0.y - 120)) < 1, 'plain scroll pans');
+    v0 = await view(p); await p.mouse.move(sb.x + 500, sb.y + 700); await p.mouse.down(); await p.mouse.move(sb.x + 600, sb.y + 650, { steps: 5 }); await p.mouse.up();
+    v1 = await view(p); ok(Math.abs(v1.x - v0.x - 100) < 1 && Math.abs(v1.y - v0.y + 50) < 1, 'dragging empty space pans');
+    // node drag and palette drop are correct when zoomed
+    await p.evaluate(() => { const n = S.nodes[0], r = document.getElementById('scroller').getBoundingClientRect(); view.z = 1.5; view.x = r.width / 3 - n.x * 1.5; view.y = r.height / 3 - n.y * 1.5; applyView(); });
+    const id = await p.evaluate(() => S.nodes[0].id); const nb = await p.locator(`.node[data-id="${id}"]`).boundingBox(); const x0 = await p.evaluate(i => S.nodes.find(n => n.id === i).x, id);
+    await p.mouse.move(nb.x + 60, nb.y + 30); await p.mouse.down(); await p.mouse.move(nb.x + 60 + 150, nb.y + 30, { steps: 6 }); await p.mouse.up();
+    const x1 = await p.evaluate(i => S.nodes.find(n => n.id === i).x, id);
+    ok(Math.abs((x1 - x0) - 100) <= 10, `at 150% a 150px drag moves the component 100 board units (${x1 - x0})`);
+    const bx = await p.locator('.pitem[data-kind="gateway"]').boundingBox(); const dropX = sb.x + 450, dropY = sb.y + 500;
+    await p.mouse.move(bx.x + 20, bx.y + 10); await p.mouse.down(); await p.mouse.move(bx.x + 120, bx.y + 20, { steps: 4 }); await p.mouse.move(dropX, dropY, { steps: 8 }); await p.mouse.up();
+    const nn = await p.locator('.node').last().boundingBox();
+    ok(Math.abs(nn.x + nn.width / 2 - dropX) < 12 && Math.abs(nn.y + nn.height / 2 - dropY) < 12, 'dropped component centres under the cursor when zoomed');
+    await p.click('#fitBtn');
+    const allIn = await p.evaluate(() => { const r = document.getElementById('scroller').getBoundingClientRect(); return [...document.querySelectorAll('.node')].every(n => { const b = n.getBoundingClientRect(); return b.left >= r.left && b.right <= r.right && b.top >= r.top && b.bottom <= r.bottom; }); });
+    ok(allIn, 'Fit brings every component into view');
+    // collapse side panes
+    const w0 = (await p.locator('#scroller').boundingBox()).width;
+    await p.click('#togglePalette'); await p.click('#togglePanel'); await p.waitForTimeout(100);
+    const w1 = (await p.locator('#scroller').boundingBox()).width;
+    ok(w1 === 1440 && await p.locator('#palette').isHidden(), `hiding both panes gives the board the full width (${w0} → ${w1})`);
+    await p.reload(); await p.waitForTimeout(300);
+    ok(await p.locator('#palette').isHidden() && await p.locator('.panel').isHidden(), 'pane choice remembered after reload');
+    await p.click('#submitBtn'); ok(await p.locator('#paneScore').isVisible(), 'Submit reopens the hidden side panel');
+    await p.click('#togglePalette'); ok(await p.locator('#palette').isVisible() && (await p.getAttribute('#togglePalette', 'aria-pressed')) === 'true', 'palette toggles back');
+    ok(await p.evaluate(() => document.documentElement.scrollWidth) <= 1440, 'no horizontal page scroll');
   });
 
   await p.screenshot({ path: shot('design-round-desktop.png') });

@@ -8,13 +8,28 @@ Open `index.html` in any modern browser. There's nothing to install or build, an
 
 1. Choose a prompt from the picker at the top (URL Shortener, Chat Messenger, Video Streaming, Ride-Hailing Dispatch and more).
 2. Read the brief: functional and non-functional requirements plus back-of-the-envelope numbers.
-3. Drag components from the palette onto the board, or tap one to drop it in.
-4. Drag from a component's right-hand dot to another component to connect them.
+3. Add components from the palette: drag them onto the board, or tap one to drop it in view.
+4. Drag from a component's dot onto another component to connect them.
 5. Select a component to rename it or set its instance count (×3 = three replicas).
 6. **Run traffic** to animate requests from the clients and spot parts nothing reaches.
 7. **Submit design** for a score out of 100, stars, a hiring verdict and the follow-up questions an interviewer would ask.
 
 Hints are available but cost 5 points each. After submitting you can load the reference design (that attempt then no longer counts toward your best score). Progress and boards are saved in your browser's local storage.
+
+### Moving around the board
+
+| | Mouse / trackpad | Touch |
+|---|---|---|
+| Pan | Drag empty space, or scroll | Drag empty space with one finger |
+| Zoom | Ctrl/⌘ + scroll, `+` / `−` keys, or the toolbar | Pinch (works over components too) |
+| Fit everything in view | `0` key or the Fit button | Fit button |
+| Undo | Ctrl/⌘ + Z or the toolbar | Toolbar |
+
+### Layouts
+
+- **Desktop (1180 px and wider):** components on the left, board in the middle, Brief / Inspect / Scorecard / Advanced on the right. Both side panes can be hidden from the board toolbar to give the board the full width; the choice is remembered.
+- **Tablet (700–1179 px):** components become a slim rail, the side panel slides in from the right, and a bottom bar switches between Brief, Inspect, Score and Advanced. A floating bar on the board edits the selected component (instances, copy, delete, details).
+- **Phone (under 700 px):** the board fills the screen. **Add** opens the components as a bottom sheet, the other sections open as sheets too, and Clear / Run traffic / the timer live in the ⋯ menu.
 
 ## Advanced notes
 
@@ -49,7 +64,7 @@ Prompts live in the `CHALLENGES` array in `index.html`. Each has requirements, a
 
 ## Tests
 
-`tests/e2e.js` drives the app in headless Chromium (desktop plus an emulated touch phone) and checks every feature: adding, moving, connecting and deleting components, the inspector, undo, hints, scoring and deductions, the traffic animation, persistence, the timer, reference designs, the prompt picker, the sandbox and dark mode. It also checks that every prompt's reference design scores 100.
+`tests/e2e.js` drives the app in headless Chromium (desktop, two tablet sizes and an emulated touch phone) and checks every feature, including pan, zoom, pinch, the drawers and sheets: adding, moving, connecting and deleting components, the inspector, undo, hints, scoring and deductions, the traffic animation, persistence, the timer, reference designs, the prompt picker, the sandbox and dark mode. It also checks that every prompt's reference design scores 100.
 
 ```sh
 npm install playwright   # once
