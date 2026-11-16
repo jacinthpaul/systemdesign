@@ -29,7 +29,7 @@ async function section(name, fn) { cur = name; try { await fn(); } catch (e) { r
     const s = await st();
     ok(s.current === 'url', 'opens on URL Shortener');
     ok(s.nodes.length === 1 && s.nodes[0].kind === 'client', 'starter Web Client on board');
-    ok(await p.locator('.pitem').count() === 29, '29 palette components');
+    ok(await p.locator('.pitem').count() === 44, '44 palette components (29 core + 15 AI)');
     ok(await p.locator('#paneBrief').isVisible(), 'Brief tab visible');
     ok((await p.textContent('#paneBrief')).includes('Back of the envelope'), 'brief has capacity estimates');
     ok(await p.locator('#undoBtn').isDisabled(), 'Undo disabled initially');
@@ -41,7 +41,7 @@ async function section(name, fn) { cur = name; try { await fn(); } catch (e) { r
     const vis = await p.locator('.pitem:visible').count();
     ok(vis >= 1 && vis < 29, `filter narrows list (${vis} visible)`);
     ok(await p.locator('.pgroup[data-cat="client"]').isHidden(), 'empty groups hidden');
-    await p.fill('#pfilter', ''); ok(await p.locator('.pitem:visible').count() === 29, 'clearing filter restores all');
+    await p.fill('#pfilter', ''); ok(await p.locator('.pitem:visible').count() === 44, 'clearing filter restores all');
   });
 
   let lb, app, cache, db;
@@ -241,7 +241,7 @@ async function section(name, fn) { cur = name; try { await fn(); } catch (e) { r
   });
 
   await section('Level picker & switching', async () => {
-    await p.click('#levelBtn'); ok(await p.locator('#levels').isVisible() && await p.locator('.level').count() === 11, 'picker shows 11 prompts');
+    await p.click('#levelBtn'); ok(await p.locator('#levels').isVisible() && await p.locator('.level').count() === 17, 'picker shows 17 prompts');
     ok((await p.locator('.level[data-id="url"]').textContent()).includes('best 65'), 'best score on card');
     await p.keyboard.press('Escape'); ok(await p.locator('#levels').isHidden(), 'Escape closes');
     await p.click('#levelBtn'); await p.click('#levelsClose'); ok(await p.locator('#levels').isHidden(), 'Close button closes');
@@ -298,7 +298,7 @@ async function section(name, fn) { cur = name; try { await fn(); } catch (e) { r
     await p.click('#tabBrief'); await p.click('#advLink'); ok(await p.locator('#paneAdv').isVisible(), 'Brief link opens Advanced');
     await p.click('#submitBtn'); await p.click('#advLink2'); ok(await p.locator('#paneAdv').isVisible(), 'Scorecard "Go deeper" opens Advanced');
     const ids = await p.evaluate(() => Object.keys(ADV));
-    ok(ids.length === 10, 'notes exist for all 10 prompts');
+    ok(ids.length === 16, 'notes exist for all 16 prompts');
     for (const id of ids) {
       await p.evaluate(i => { loadChallenge(i); S.adv = true; }, id); await p.click('#tabAdv');
       const c = await p.evaluate(() => ({ ep: document.querySelectorAll('#paneAdv .ep').length, ent: document.querySelectorAll('#paneAdv .ent').length, tr: document.querySelectorAll('#paneAdv .tr').length, chosen: [...document.querySelectorAll('#paneAdv .tr')].every(t => t.querySelector('.chosen')), fl: document.querySelectorAll('#paneAdv .fl').length, st: document.querySelectorAll('#paneAdv .steps li').length, mt: document.querySelectorAll('#paneAdv .chips span').length, wide: document.getElementById('paneAdv').scrollWidth <= document.getElementById('paneAdv').clientWidth + 1 }));
@@ -348,6 +348,131 @@ async function section(name, fn) { cur = name; try { await fn(); } catch (e) { r
     ok(sf.includes('Web Client → Load Balancer → App Server → Cache') && sf.includes('3 hops'), 'Sandbox traces the path through your own board');
     ok(sf.includes('1 component is not reachable'), 'Sandbox flow reports unreachable components');
     ok(await p.locator('#qaAll').count() === 0, 'Sandbox has no follow-up questions');
+  });
+
+  // ================= v2: AI components and prompts =================
+  const addKind = async (k) => { await p.locator(`.pitem[data-kind="${k}"]`).click(); return (await st()).nodes.at(-1).id; };
+  await section('v2 · AI palette', async () => {
+    await p.evaluate(() => loadChallenge('sandbox')); await p.click('#clearBtn'); await p.click('#clearBtn');
+    ok(await p.locator('.pgroup[data-scope="ai"]').count() === 5, 'five AI groups, as in the script');
+    await p.click('.pscope [data-scope="ai"]');
+    ok(await p.locator('.pitem:visible').count() === 15 && await p.locator('.pgroup[data-cat="client"]').isHidden(), 'AI filter shows only the 15 AI components');
+    await p.click('.pscope [data-scope="core"]');
+    ok(await p.locator('.pitem:visible').count() === 29 && await p.locator('.pgroup[data-cat="ai-brain"]').isHidden(), 'Core filter shows the 29 classic components');
+    await p.click('.pscope [data-scope="ai"]'); await p.reload(); await p.waitForTimeout(300);
+    ok((await p.getAttribute('.pscope [data-scope="ai"]', 'aria-pressed')) === 'true' && await p.locator('.pitem:visible').count() === 15, 'filter choice remembered');
+    await p.fill('#pfilter', 'policy'); ok(await p.locator('.pitem:visible').count() >= 1 && await p.locator('.pitem[data-kind="policy"]').isVisible(), 'search works inside the AI filter');
+    await p.fill('#pfilter', ''); await p.click('.pscope [data-scope="all"]');
+  });
+
+  await section('v2 · Controls on AI components', async () => {
+    const pid = await addKind('planner');
+    ok(await p.locator('#paneInspect .say').isVisible() && (await p.textContent('#paneInspect .say')).includes('hard caps'), 'interview line shown for the orchestrator');
+    ok(await p.locator('#paneInspect [data-ctl]').count() === 3, 'orchestrator has three controls');
+    await p.fill('#ctl-maxSteps', '8'); await p.fill('#ctl-tokenBudget', '40'); await p.check('#ctl-handoff');
+    let n = (await st()).nodes.find(x => x.id === pid);
+    ok(n.ctl.maxSteps === 8 && n.ctl.tokenBudget === 40 && n.ctl.handoff === true, 'controls stored on the component');
+    ok((await nodeEl(pid).textContent()).includes('≤ 8 steps · 40k tokens · hands off'), 'controls shown on the board');
+    await p.fill('#ctl-maxSteps', ''); n = (await st()).nodes.find(x => x.id === pid);
+    ok(!('maxSteps' in n.ctl), 'clearing a control removes it');
+    await p.click('#undoBtn'); n = (await st()).nodes.find(x => x.id === pid);
+    ok(n.ctl && n.ctl.maxSteps === 8, 'undo restores controls');
+    await nodeEl(pid).click(); await p.click('#dupBtn');
+    const dup = (await st()).nodes.at(-1); ok(dup.kind === 'planner' && dup.ctl && dup.ctl.tokenBudget === 40, 'duplicate copies controls');
+    const pol = await addKind('policy');
+    ok((await p.textContent('#paneInspect .say')).includes('50-dollar limit'), 'policy shows the 50-dollar line');
+    await p.fill('#ctl-rule', 'Refunds up to $50 auto'); ok((await nodeEl(pol).textContent()).includes('Refunds up to $50 auto'), 'policy rule shown on the board');
+    await addKind('llm'); await p.selectOption('#ctl-tier', 'Small + large');
+    ok((await st()).nodes.at(-1).ctl.tier === 'Small + large', 'model tier select works');
+    await p.reload(); await p.waitForTimeout(300);
+    ok((await st()).nodes.find(x => x.id === pol).ctl.rule === 'Refunds up to $50 auto', 'controls survive reload');
+    ok(await p.locator('#drillBtn').isVisible(), 'Attack drills button appears once there is an agent');
+    await p.evaluate(() => loadChallenge('url')); ok(await p.locator('#drillBtn').isHidden(), 'and stays hidden on boards without one');
+  });
+
+  await section('v2 · Scoring rules from the script', async () => {
+    const r = await p.evaluate(() => {
+      const c = challengeById('support'); const ref = fullRef(c); const h = S.hints; S.hints = 0;
+      const sc = (mut) => { const b = buildBoard(ref.nodes, ref.edges); const k = (kd) => b.nodes.find(n => n.kind === kd).id; mut(b, k); const e = evaluate(c, b.nodes, b.edges); return { score: e.score, miss: e.items.filter(i => !i.ok && !i.bonus).map(i => i.label), pen: e.penalties.map(x => x.label) }; };
+      const out = {
+        full: sc(() => {}),
+        bypass: sc((b, k) => b.edges.push({ id: 'x1', from: k('planner'), to: k('tools') })),
+        direct: sc((b, k) => b.edges.push({ id: 'x2', from: k('planner'), to: b.nodes.find(n => n.label === 'Refund service').id })),
+        noguard: sc((b, k) => b.edges.push({ id: 'x3', from: k('client'), to: k('planner') })),
+        rawllm: sc((b, k) => b.edges.push({ id: 'x4', from: k('planner'), to: k('llm') })),
+        noctl: sc((b, k) => { b.nodes.find(n => n.kind === 'policy').ctl = {}; }),
+        nopolicy: sc((b, k) => { const pid = k('policy'); b.edges = b.edges.filter(e => e.from !== pid && e.to !== pid); b.edges.push({ id: 'x5', from: k('planner'), to: k('agentid') }); }),
+      };
+      S.hints = h; return out;
+    });
+    ok(r.full.score === 100, 'support reference scores 100');
+    ok(r.bypass.miss.some(m => m.includes('without passing policy')), 'a wire from the agent straight to the tools fails the policy gate');
+    ok(r.nopolicy.miss.some(m => m.includes('without passing policy')), 'removing policy from the route fails the gate');
+    ok(r.direct.pen.some(m => m.includes('straight to business systems')), 'agent wired to a business service is penalised');
+    ok(r.noguard.pen.some(m => m.includes('without guardrails')), 'user messages reaching the agent directly are penalised');
+    ok(r.rawllm.pen.some(m => m.includes('through the LLM gateway')), 'agent calling the model directly is penalised');
+    ok(r.noctl.miss.some(m => m.includes('refund rule')), 'a policy without a rule misses its rubric item (pair capability with control)');
+  });
+
+  await section('v2 · Add-AI prompts build on classic designs', async () => {
+    await p.click('#levelBtn');
+    ok(await p.locator('.level-sec').count() === 4 && (await p.textContent('#levelGrid')).includes('Add AI to a design'), 'picker grouped into four sections');
+    ok((await p.textContent('.level[data-id="ridesupport"]')).includes('Builds on Ride-Hailing Dispatch'), 'Add-AI cards say what they build on');
+    ok(await p.locator('.level[data-id="support"] .tag-ai').count() === 1 && await p.locator('.level[data-id="url"] .tag-ai').count() === 0, 'AI prompts tagged');
+    await p.click('.level[data-id="ridesupport"]'); await p.waitForTimeout(200);
+    await p.click('#clearBtn'); await p.click('#clearBtn');
+    const s0 = await st(); const rideRef = await p.evaluate(() => challengeById('ride').ref);
+    ok(s0.nodes.length === rideRef.nodes.length && s0.edges.length === rideRef.edges.length, `starts with the finished Ride-Hailing design (${s0.nodes.length} components)`);
+    ok(await p.locator('#pickAI').isVisible() && (await p.textContent('#paneBrief .builds')).includes('Builds on Ride-Hailing Dispatch'), 'header AI tag and Builds-on note');
+    ok(await p.locator('#paneBrief .fourq li').count() === 4, 'Brief lists the four questions');
+    await p.click('#tabBrief'); ok(await p.locator('#useMine').isVisible(), 'offers to start from your own Ride-Hailing board');
+    const mine = await p.evaluate(() => store.saves.ride.nodes.length);
+    await p.click('#useMine'); ok((await st()).nodes.length === mine, 'Start from my board loads it');
+    await p.click('#undoBtn'); ok((await st()).nodes.length === s0.nodes.length, 'undo brings the reference start back');
+    await p.click('#submitBtn');
+    ok(await p.locator('#paneScore .qgroup').count() === 4, 'scorecard grouped under the four questions');
+    const starterScore = (await st()).result.score; ok(starterScore < 20, `the base design alone scores low (${starterScore})`);
+    await p.evaluate(() => loadChallenge('ride')); await p.click('#submitBtn');
+    ok(await p.locator('#aiNext').isVisible() && (await p.textContent('#aiNext')).includes('Rider Support Agent'), 'Ride-Hailing scorecard offers to continue with AI');
+    await p.click('#aiNext'); ok((await st()).current === 'ridesupport', 'continue opens Rider Support Agent');
+    for (const [base, ai] of [['filesync', 'askfiles'], ['feed', 'moderation']]) {
+      await p.evaluate(b => loadChallenge(b), base); await p.click('#submitBtn');
+      ok((await p.textContent('#aiNext')).includes(await p.evaluate(a => challengeById(a).title, ai)), `${base} → ${ai} continuity link`);
+    }
+  });
+
+  await section('v2 · Attack drills', async () => {
+    await p.emulateMedia({ reducedMotion: 'reduce' });
+    await p.evaluate(() => loadChallenge('support')); await p.click('#submitBtn'); await p.click('#refBtn'); await p.click('#refBtn');
+    ok(await p.locator('#drillBtn').isVisible(), 'drills available on the support reference');
+    await p.click('#drillBtn'); await p.waitForTimeout(200);
+    let d = await p.evaluate(() => S.drills); ok(d && d.results.length === 5, 'five drills run');
+    ok(d.results.every(r => r.state === 'ok'), 'reference design blocks all five: ' + d.results.map(r => r.id + ':' + r.state).join(' '));
+    ok((await p.textContent('#paneScore')).includes('Attack drills · 5 of 5 blocked'), 'results shown on the scorecard');
+    // weaken it: remove policy rule, identity and citations, planner limits
+    await p.evaluate(() => { for (const n of S.nodes) { if (['policy', 'agentid', 'rag', 'planner', 'tools', 'memory'].includes(n.kind)) n.ctl = {}; } changed(); renderScore(); });
+    ok((await p.textContent('#paneScore')).includes('changed since these ran'), 'stale results flagged after edits');
+    await p.click('#drillAgain'); await p.waitForTimeout(200); d = await p.evaluate(() => S.drills);
+    const by = Object.fromEntries(d.results.map(r => [r.id, r.state]));
+    ok(by.inject !== 'ok' && by.agency === 'bad' && by.leak === 'bad' && by.halluc === 'warn' && by.cost === 'warn', 'weakened controls let attacks through: ' + JSON.stringify(by));
+    ok(d.results.find(r => r.id === 'agency').text.includes('Cancelled 14 orders'), 'damage described');
+    await p.emulateMedia({ reducedMotion: 'no-preference' });
+    await p.click('#undoBtn'); await p.click('#drillBtn'); await p.waitForTimeout(600);
+    ok(await p.locator('.packet.attack').count() === 1, 'animated attack travels along the wires');
+    await p.waitForFunction(() => S.drills && S.drills.sig === boardSig(), null, { timeout: 30000 });
+    ok(await p.evaluate(() => S.drills.results.every(r => r.state === 'ok')), 'animated run finishes and records results');
+    await p.evaluate(() => loadChallenge('moderation')); ok(await p.locator('#drillBtn').isHidden(), 'no drills for a design without an agent');
+  });
+
+  await section('v2 · Advanced notes for AI prompts', async () => {
+    for (const id of ['support', 'kb', 'aiplatform', 'ridesupport', 'askfiles', 'moderation']) {
+      await p.evaluate(i => { loadChallenge(i); S.adv = true; }, id); await p.click('#tabAdv');
+      const toc = await p.textContent('#paneAdv .adv-toc');
+      ok(toc.includes('Rollout') && !toc.includes('Scaling') && await p.locator('#paneAdv #adv-rollout .steps li').count() === 4, `${id}: rollout plan instead of scaling path`);
+      ok((await p.textContent('#paneAdv')).includes('Launch metrics'), `${id}: launch metrics`);
+    }
+    await p.evaluate(() => loadChallenge('support')); await p.click('#tabAdv');
+    ok(await p.locator('#paneAdv .m-TOOL').count() >= 2, 'tool definitions in the API section');
   });
 
   await section('Tabs', async () => {

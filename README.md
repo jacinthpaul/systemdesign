@@ -44,9 +44,40 @@ Every prompt has an **Advanced** tab (also linked from the Brief and the Scoreca
 
 The notes describe a strong answer, so they're hidden behind a "Show advanced notes" button until you submit (opening them doesn't affect your score). "Open wide view" shows them in a two-column reader. The Sandbox shows a 45-minute interview framework instead.
 
+## AI system design (v2)
+
+Version 2 adds AI to the board, based on the script *AI System Design in Plain English*: an AI agent doesn't replace the classic building blocks, it sits on top of them and adds new parts.
+
+**15 AI components** in the palette (use the **Core / AI / All** filter at the top), grouped as in the script:
+
+| Group | Components |
+|---|---|
+| Brain | LLM Gateway, Prompt Management, Agent Orchestrator, LLM |
+| Hands and rules | Tool Registry (MCP), Agent Identity, Guardrails, Policy Engine |
+| Knowledge and memory | RAG Retriever, Vector Database, Agent Memory |
+| Teamwork and people | Specialist Agent, Human Review |
+| Checking and watching | Evals, AI Observability |
+
+Select an AI component to read what it does in plain English, a **"Say it in the interview"** line, and its **controls**: the orchestrator's step and token limits, the policy rule ("refunds up to $50 automatically"), guardrails on input and output, the agent acting with the user's own permissions, citations, memory retention, eval gates and so on. Set controls show on the component, and the rubric rewards them: pair every capability with a control.
+
+**Six AI prompts**
+
+- *AI solutions*, built from scratch: Store Support Agent (the "my blender arrived broken" case), Company Knowledge Assistant, LLM Gateway Platform.
+- *Add AI to a design*, which start from a finished classic design so the agent is a later phase: Rider Support Agent (on Ride-Hailing Dispatch), Ask Your Files (on Cloud File Sync), AI Content Moderation (on Social News Feed). You can start from your own saved board instead, and the classic prompts' scorecards link straight to them.
+
+**AI scoring rules**
+
+- *Nothing reaches company systems without passing policy:* the agent must reach its tools, and every route there must go through the Policy Engine.
+- Deductions for user messages reaching the agent without guardrails, the agent wired straight to business systems, and the agent calling a model without the LLM gateway.
+- AI scorecards are grouped under four questions: What can it do, and what's the limit? Where do its facts come from? When does a person step in? How will we know it's working, and what does it cost?
+
+**Attack drills** play five OWASP Top 10 for LLM risks against your board: prompt injection, excessive agency, data leakage, hallucination and runaway cost. An attack travels along your wires and stops at the first control that blocks it, or reaches your systems and reports the damage.
+
+AI prompts' Advanced notes include tool definitions, a rollout plan (shadow mode → read-only → small actions → more case types) and launch metrics.
+
 ## Components
 
-29 building blocks in six groups: clients, edge and networking (DNS, CDN, load balancer, API gateway, rate limiter), compute (app servers, microservices, WebSocket servers, workers, serverless, schedulers), storage (SQL, read replicas, NoSQL, key-value, cache, object storage, search, geospatial index, warehouse), messaging (queues, event streams) and supporting services (auth, notifications, ID generator, ZooKeeper, monitoring).
+29 classic building blocks in six groups (plus the 15 AI components above): clients, edge and networking (DNS, CDN, load balancer, API gateway, rate limiter), compute (app servers, microservices, WebSocket servers, workers, serverless, schedulers), storage (SQL, read replicas, NoSQL, key-value, cache, object storage, search, geospatial index, warehouse), messaging (queues, event streams) and supporting services (auth, notifications, ID generator, ZooKeeper, monitoring).
 
 ## Scoring
 
@@ -64,7 +95,7 @@ Prompts live in the `CHALLENGES` array in `index.html`. Each has requirements, a
 
 ## Tests
 
-`tests/e2e.js` drives the app in headless Chromium (desktop, two tablet sizes and an emulated touch phone) and checks every feature, including pan, zoom, pinch, the drawers and sheets: adding, moving, connecting and deleting components, the inspector, undo, hints, scoring and deductions, the traffic animation, persistence, the timer, reference designs, the prompt picker, the sandbox and dark mode. It also checks that every prompt's reference design scores 100.
+`tests/e2e.js` drives the app in headless Chromium (desktop, two tablet sizes and an emulated touch phone) and checks every feature, including pan, zoom, pinch, the drawers and sheets, the AI components and controls, the policy-gate rule and the attack drills: adding, moving, connecting and deleting components, the inspector, undo, hints, scoring and deductions, the traffic animation, persistence, the timer, reference designs, the prompt picker, the sandbox and dark mode. It also checks that every prompt's reference design (all 16) scores 100.
 
 ```sh
 npm install playwright   # once
