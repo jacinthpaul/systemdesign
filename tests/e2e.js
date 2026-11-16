@@ -406,10 +406,10 @@ async function section(name, fn) { cur = name; try { await fn(); } catch (e) { r
     ok(await mp.locator('#paneAdv .ep').count() > 0, 'Advanced notes readable on phone');
     ok(await mp.evaluate(() => document.documentElement.scrollWidth) <= 390, 'still no horizontal scroll with notes open');
     await mp.click('#advExpand'); ok(await mp.evaluate(() => getComputedStyle(document.querySelector('#advWideBody .adv-grid')).gridTemplateColumns.split(' ').length) === 1, 'wide view stacks to one column on phone');
-    await mp.screenshot({ path: shot('design-round-phone-adv.png') }); await mp.click('#advWideClose');
+    await mp.screenshot({ path: shot('designmate-phone-adv.png') }); await mp.click('#advWideClose');
     await mp.keyboard.press('Escape'); await mp.waitForTimeout(300);
     ok(await mp.locator('.panel').evaluate(e => getComputedStyle(e).visibility) === 'hidden', 'Escape closes the sheet');
-    await mp.screenshot({ path: shot('design-round-phone.png') });
+    await mp.screenshot({ path: shot('designmate-phone.png') });
   });
 
   // ---------- tablet ----------
@@ -438,7 +438,7 @@ async function section(name, fn) { cur = name; try { await fn(); } catch (e) { r
       await tp.tap('[data-dock="brief"]'); await tp.waitForTimeout(300);
       ok(await tp.locator('.panel').evaluate(e => getComputedStyle(e).visibility) === 'hidden', 'tapping it again closes');
       await tp.tap('#submitBtn'); await tp.waitForTimeout(300); ok(await tp.locator('#paneScore').isVisible(), 'Submit opens the Scorecard drawer');
-      await tp.screenshot({ path: shot(`design-round-tablet-${w}.png`) });
+      await tp.screenshot({ path: shot(`designmate-tablet-${w}.png`) });
     });
     await t.close();
   }
@@ -493,7 +493,7 @@ async function section(name, fn) { cur = name; try { await fn(); } catch (e) { r
     ok(await p.evaluate(() => document.documentElement.scrollWidth) <= 1440, 'no horizontal page scroll');
   });
 
-  await p.screenshot({ path: shot('design-round-desktop.png') });
+  await p.screenshot({ path: shot('designmate-desktop.png') });
   await b.close();
   const fails = results.filter(r => !r[0]);
   for (const [pass, msg] of results) console.log((pass ? '  PASS ' : '  FAIL ') + msg);

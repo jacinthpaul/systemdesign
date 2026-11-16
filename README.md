@@ -1,4 +1,4 @@
-# Design Round
+# Designmate
 
 A drag-and-drop practice board for system design interviews. Pick a classic prompt, build your architecture from real components, then submit it to get a scorecard against a hidden rubric.
 
