@@ -2,9 +2,11 @@
 
 A drag-and-drop practice board for system design interviews. Pick a classic prompt, build your architecture from real components, then submit it to get a scorecard against a hidden rubric.
 
+**[Open Designmate →](https://jacinthpaul.github.io/systemdesign/)** (GitHub Pages: works on desktop, tablet and phone)
+
 ## Play online
 
-Designmate is a single static page, so it runs on GitHub Pages: **https://jacinthpaul.github.io/systemdesign/**
+Designmate is a single static page, so it runs on GitHub Pages: **[jacinthpaul.github.io/systemdesign](https://jacinthpaul.github.io/systemdesign/)**
 
 To turn Pages on (one time): repository **Settings → Pages → Build and deployment → Source: Deploy from a branch**, pick the branch that holds `index.html` and the **/ (root)** folder, and save. Every push to that branch redeploys within a minute or two. The empty `.nojekyll` file tells Pages to serve the files as they are, without a Jekyll build.
 
