@@ -241,6 +241,16 @@ body.no-palette .palette, body.no-panel .panel { display: none; }
   .port { opacity: 0; transition: opacity .15s; }
   .node:hover .port, .node.sel .port, .node:focus-visible .port { opacity: 1; }
 }
+/* fingers need a ~44px target; the dot stays 18px but its hit area grows */
+@media (pointer: coarse) {
+  .port::before { content: ""; position: absolute; inset: -13px; border-radius: 50%; }
+}
+/* tap-to-connect: source is outlined, every other component reads as a target */
+.node.link-src { outline: 2.5px dashed var(--accent); outline-offset: 3px; }
+body.linking .node:not(.link-src) { border-style: dashed; border-color: var(--accent); cursor: pointer; }
+body.linking .node .port { visibility: hidden; }
+.selbar .sb-msg { padding: 0 8px; font-size: 13px; color: var(--ink-2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.selbar .sb-msg b { color: var(--ink); }
 
 .empty-hint {
   position: absolute; left: 50%; top: 66%; transform: translate(-50%, -50%); z-index: 2;
@@ -513,6 +523,8 @@ details ul { margin-top: 6px; }
   .dock .badge-n { position: absolute; top: 5px; left: calc(50% + 6px); font: 600 9.5px/1 var(--f-mono); background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: 2px 4px; }
   .sheet.wide { max-height: 100%; }
   .toast { bottom: calc(70px + env(safe-area-inset-bottom, 0px)); }
+  /* keep messages clear of the selection bar */
+  body:has(.selbar.on):not(.panel-open):not(.palette-open) .toast { bottom: calc(132px + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* ---------- phone: full-screen board, bottom sheets ---------- */
@@ -561,6 +573,8 @@ details ul { margin-top: 6px; }
   .selbar.on { left: 12px; right: 12px; transform: none; max-width: none; justify-content: space-between; overflow-x: auto; }
   .selbar .sb-main { max-width: 132px; }
   .selbar .sb-txt { display: none; }
+  .selbar [data-act="link"] { background: var(--accent-soft); color: var(--accent); }
+  .selbar [data-act="link"] .sb-txt { display: inline; }
   .toolbar { top: 10px; right: max(10px, env(safe-area-inset-right, 0px)); }
   .tbtn { width: 40px; height: 40px; }
   .empty-hint { top: 70%; }
@@ -621,7 +635,7 @@ details ul { margin-top: 6px; }
       </div>
       <div class="empty-hint" id="emptyHint" hidden>
         <strong>Start with the request path</strong>
-        Add components from the palette (drag them in, or tap one). Drag from a component's dot onto another to connect them. Drag empty space to pan; pinch or Ctrl + scroll to zoom.
+        Add components from the palette (drag them in, or tap one). Drag from a component's dot onto another to connect them (or tap one, then Connect). Drag empty space to pan; pinch or Ctrl + scroll to zoom.
       </div>
       <div class="toolbar" role="toolbar" aria-label="Board controls">
         <button class="tbtn" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo"><svg class="ico" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
@@ -2049,6 +2063,7 @@ function persist() { try { localStorage.setItem(KEY, JSON.stringify(store)); } c
 
 let S;              // save of current challenge: {nodes, edges, hints, t0, revealed, result}
 let sel = null;     // {t: 'node'|'edge', id}
+let linking = null; // tap-to-connect in progress: {from: nodeId}
 let history = [];
 let uid = 1;
 const $ = (id) => document.getElementById(id);
@@ -2131,7 +2146,7 @@ function nodeHTML(n) {
   const custom = n.label && n.label !== k.name;
   const cs = ctlSummary(n);
   const sub = cs ? `<span class="nk ctl" title="${esc(cs)}">${esc(cs)}</span>` : custom ? `<span class="nk">${esc(k.name)}</span>` : "";
-  return `<div class="node cat-${k.cat}${n.replicas > 1 ? " multi" : ""}${isSel ? " sel" : ""}" data-id="${n.id}" tabindex="0"
+  return `<div class="node cat-${k.cat}${n.replicas > 1 ? " multi" : ""}${isSel ? " sel" : ""}${linking && linking.from === n.id ? " link-src" : ""}" data-id="${n.id}" tabindex="0"
       style="left:${n.x}px;top:${n.y}px" aria-label="${esc(n.label)} (${esc(k.name)})${cs ? ": " + esc(cs) : ""}">
     ${n.replicas > 1 ? `<span class="reps">×${n.replicas}</span>` : ""}
     <span class="badge">${k.abbr}</span>
@@ -2175,7 +2190,7 @@ function renderHeader() {
 }
 const hasAgent = () => S.nodes.some((n) => PLAN.includes(n.kind));
 function syncDrillBtn() { $("drillBtn").hidden = !hasAgent(); }
-function renderAll() { renderHeader(); renderBoard(); renderBrief(); renderInspect(); renderScore(); syncDrillBtn(); $("undoBtn").disabled = true; }
+function renderAll() { linking = null; document.body.classList.remove("linking"); renderHeader(); renderBoard(); renderBrief(); renderInspect(); renderScore(); syncDrillBtn(); $("undoBtn").disabled = true; }
 
 /* =========================================================
    Palette
@@ -2336,6 +2351,25 @@ $("palette").addEventListener("keydown", (ev) => {
    Node dragging, connecting, selecting
    ========================================================= */
 let ndrag = null, wiring = null;
+// Tap-to-connect (touch-friendly alternative to dragging the port): pick a source with
+// Connect in the selection bar, then tap the target. Tapping the source or empty board cancels.
+function startLinking(id) { linking = { from: id }; document.body.classList.add("linking"); renderBoard(); renderSelBar(); }
+function stopLinking() {
+  if (!linking) return false;
+  linking = null; document.body.classList.remove("linking"); renderBoard(); renderSelBar();
+  return true;
+}
+function finishLinking(to) {
+  const from = linking.from;
+  linking = null; document.body.classList.remove("linking");
+  if (to === from) { renderBoard(); renderSelBar(); return; }
+  const before = S.edges.length;
+  connect(from, to);
+  if (S.edges.length > before) {
+    toast(`Connected ${nodeById(from).label} → ${nodeById(to).label}`);
+    try { navigator.vibrate && navigator.vibrate(12); } catch (e) {}
+  } else { renderBoard(); renderSelBar(); }
+}
 $("nodes").addEventListener("pointerdown", (ev) => {
   if (ev.button > 0) return;
   const port = ev.target.closest(".port");
@@ -2393,6 +2427,8 @@ function endNodePointer(ev) {
   if (d.moved) {
     n.x = clampX(snap(n.x)); n.y = clampY(snap(n.y));
     changed();
+  } else if (linking) {
+    finishLinking(d.id);
   } else {
     select({ t: "node", id: d.id });
   }
@@ -2472,7 +2508,8 @@ function endStagePointer(ev) {
   if (!pointers.has(ev.pointerId)) return;
   pointers.delete(ev.pointerId);
   if (pan && ev.pointerId === pan.pid) {
-    if (!pan.moved && ev.type === "pointerup" && sel) { sel = null; renderBoard(); renderInspect(); }
+    if (!pan.moved && ev.type === "pointerup" && linking) stopLinking();
+    else if (!pan.moved && ev.type === "pointerup" && sel) { sel = null; renderBoard(); renderInspect(); }
     pan = null;
   }
   if (pointers.size < 2) pinch = null;
@@ -2521,6 +2558,7 @@ document.addEventListener("keydown", (ev) => {
     if (!$("levels").hidden) { closeLevels(); return; }
     if (!$("advWide").hidden) { closeAdvWide(); return; }
     if (document.body.classList.contains("panel-open") || document.body.classList.contains("palette-open") || $("tools").closest(".bar").classList.contains("menu-open")) { closeSheets(); closeMenu(); return; }
+    if (stopLinking()) return;
     if (sel) { sel = null; renderBoard(); renderInspect(); }
   }
 });
@@ -2621,7 +2659,7 @@ function renderBrief() {
   h += `<details class="sec"><summary>How to play</summary><ul>
     <li>Read the requirements, then build the request path from the client inward.</li>
     <li>Drag components from the palette, or tap one to drop it in the middle of the board.</li>
-    <li>Drag from a component's right-hand dot onto another component to connect them. Arrow direction is up to you; the rubric only cares that they're linked.</li>
+    <li>Drag from a component's right-hand dot onto another component to connect them. On a phone or tablet you can also tap a component, tap <b>Connect</b>, then tap the other one. Arrow direction is up to you; the rubric only cares that they're linked.</li>
     <li>Select a component to rename it or set its instance count (×3 means three replicas).</li>
     <li>Submit to get a scorecard against the rubric. Three stars needs 90 or more.</li>
   </ul></details>`;
@@ -2725,11 +2763,18 @@ function renderSelBar() {
   const bar = $("selbar");
   const node = sel && sel.t === "node" ? nodeById(sel.id) : null;
   const edge = sel && sel.t === "edge" ? S.edges.find((e) => e.id === sel.id) : null;
+  if (linking && !nodeById(linking.from)) { linking = null; document.body.classList.remove("linking"); }
+  if (linking) {
+    bar.innerHTML = `<span class="sb-msg" role="status">Tap a component to connect <b>${esc(nodeById(linking.from).label)}</b> to</span>
+      <button data-act="unlink">Cancel</button>`;
+    bar.classList.add("on"); return;
+  }
   if (!node && !edge) { bar.classList.remove("on"); bar.innerHTML = ""; return; }
   if (node) {
     const k = KINDS[node.kind];
     bar.innerHTML = `<button class="sb-main cat-${k.cat}" data-act="details" title="Rename and details"><span class="badge">${k.abbr}</span><span>${esc(node.label)}</span></button>
       <span class="sbsep"></span>
+      <button data-act="link" aria-label="Connect to another component"><svg class="ico" viewBox="0 0 24 24"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="12" r="2.5"/><path d="M7.5 12h9"/><path d="M13.5 9l3 3-3 3"/></svg><span class="sb-txt">Connect</span></button>
       <span class="sb-step"><button data-act="minus" aria-label="Fewer instances">−</button><span class="sb-reps" aria-label="Instances">×${node.replicas}</span><button data-act="plus" aria-label="More instances">+</button></span>
       <button data-act="dup" aria-label="Duplicate"><svg class="ico" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg><span class="sb-txt">Copy</span></button>
       <button data-act="del" class="danger" aria-label="Delete"><svg class="ico" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg><span class="sb-txt">Delete</span></button>`;
@@ -2743,8 +2788,11 @@ function renderSelBar() {
   bar.classList.add("on");
 }
 $("selbar").addEventListener("click", (ev) => {
-  const b = ev.target.closest("[data-act]"); if (!b || !sel) return;
+  const b = ev.target.closest("[data-act]"); if (!b) return;
   const act = b.dataset.act;
+  if (act === "unlink") return stopLinking();
+  if (!sel) return;
+  if (act === "link") return startLinking(sel.id);
   if (act === "details") return openPanel("inspect");
   if (act === "del") return removeSelected();
   if (sel.t === "node") {

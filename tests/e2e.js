@@ -529,6 +529,35 @@ async function section(name, fn) { cur = name; try { await fn(); } catch (e) { r
     const nb = await mp.locator(`.node[data-id="${ids[2]}"]`).boundingBox(); const y0 = await mp.evaluate(i => S.nodes.find(n => n.id === i).y, ids[2]);
     await touchDrag(nb.x + 40, nb.y + 30, nb.x + 40, nb.y - 60);
     ok(await mp.evaluate(i => S.nodes.find(n => n.id === i).y, ids[2]) < y0 - 40, 'touch drag moves node');
+    // the connect dot has a finger-sized hit area: a touch 17px right of its centre (outside the dot) still starts a wire
+    const pb1 = await mp.locator(`.node[data-id="${ids[1]}"] .port`).boundingBox(); const tb2 = await mp.locator(`.node[data-id="${ids[2]}"]`).boundingBox();
+    ok(await mp.evaluate(([x, y]) => !!document.elementFromPoint(x, y).closest('.port'), [pb1.x + 9 + 17, pb1.y + 9]), 'connect dot hit area is ~44px on touch');
+    await touchDrag(pb1.x + 9 + 17, pb1.y + 9, tb2.x + 50, tb2.y + 30);
+    ok(await mp.evaluate(() => S.edges.length) === 2, 'touch just outside the dot still connects');
+    // tap-to-connect
+    const emptySpot = async () => mp.evaluate(() => { const r = document.getElementById('scroller').getBoundingClientRect(); for (let y = r.top + 80; y < r.bottom - 160; y += 20) for (let x = r.left + 20; x < r.right - 70; x += 20) { const el = document.elementFromPoint(x, y); if (el && !el.closest('.node, .wire, .toolbar, .selbar, .empty-hint')) return [x, y]; } return null; });
+    await mp.locator(`.node[data-id="${ids[2]}"]`).tap();
+    ok(await mp.locator('#selbar [data-act="link"]').isVisible(), 'selection bar has Connect');
+    ok(await mp.evaluate(() => { const s = document.getElementById('selbar'); return s.scrollWidth <= s.clientWidth + 1; }), 'selection bar fits the phone width without scrolling');
+    await mp.tap('#selbar [data-act="link"]');
+    ok(await mp.evaluate(() => document.body.classList.contains('linking')) && (await mp.textContent('#selbar')).includes('Tap a component'), 'Connect enters connect mode with a prompt');
+    ok(await mp.locator(`.node[data-id="${ids[2]}"]`).evaluate(e => e.classList.contains('link-src')), 'source component is highlighted');
+    await mp.locator(`.node[data-id="${ids[0]}"]`).tap();
+    ok(await mp.evaluate(([a, b]) => S.edges.length === 3 && S.edges.some(e => e.from === a && e.to === b), [ids[2], ids[0]]), 'tapping a target connects source → target');
+    ok(await mp.evaluate(() => !document.body.classList.contains('linking') && sel && sel.t === 'edge'), 'connect mode ends and the new connection is selected');
+    await mp.locator(`.node[data-id="${ids[0]}"]`).tap(); await mp.tap('#selbar [data-act="link"]');
+    await mp.locator(`.node[data-id="${ids[1]}"]`).tap();
+    ok(await mp.evaluate(() => S.edges.length) === 3 && !(await mp.evaluate(() => document.body.classList.contains('linking'))), 'tapping an already-connected target adds nothing');
+    await mp.locator(`.node[data-id="${ids[0]}"]`).tap(); await mp.tap('#selbar [data-act="link"]');
+    await mp.locator(`.node[data-id="${ids[0]}"]`).tap();
+    ok(!(await mp.evaluate(() => document.body.classList.contains('linking'))) && await mp.evaluate(() => S.edges.length) === 3, 'tapping the source again cancels');
+    ok(await mp.evaluate(i => sel && sel.id === i, ids[0]), 'source stays selected after cancelling');
+    await mp.tap('#selbar [data-act="link"]');
+    const es = await emptySpot(); await mp.touchscreen.tap(es[0], es[1]);
+    ok(!(await mp.evaluate(() => document.body.classList.contains('linking'))) && await mp.evaluate(() => S.edges.length) === 3, 'tapping empty board cancels connect mode');
+    await mp.locator(`.node[data-id="${ids[0]}"]`).tap(); await mp.tap('#selbar [data-act="link"]'); await mp.tap('#selbar [data-act="unlink"]');
+    ok(!(await mp.evaluate(() => document.body.classList.contains('linking'))) && (await mp.textContent('#selbar')).includes('×'), 'Cancel leaves connect mode and restores the bar');
+    await mp.screenshot({ path: shot('designmate-phone-connect.png') });
     await mp.locator(`.node[data-id="${ids[2]}"]`).tap(); ok((await sel2(mp)).t === 'node', 'tap selects node');
     await mp.tap('#selbar [data-act="plus"]'); await mp.tap('#selbar [data-act="plus"]');
     ok(await mp.evaluate(i => S.nodes.find(n => n.id === i).replicas, ids[2]) === 3 && (await mp.textContent('#selbar')).includes('×3'), 'selection bar + sets instances to 3');
